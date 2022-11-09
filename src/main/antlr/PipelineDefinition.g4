@@ -78,6 +78,7 @@ expr
     | dot_member
     | number
     | str
+    | bool
     | '(' expr ')'
     ;
 
@@ -104,11 +105,19 @@ str
     : STRING_LIT
     ;
 
+bool
+    : BOOL_LIT
+    ;
+
 TYPES
     : 'int' | 'long' | 'float' | 'double' | 'string' | 'array' | 'object' | 'dynamic'
     ;
 
 STRING_LIT : '"' (~('"' | '\\' | '\r' | '\n') | ('\\' ('"' | '\\' | 'r' | 'n' | 't')))* '"'
+    ;
+
+BOOL_LIT
+    : 'true' | 'false'
     ;
 
 ID

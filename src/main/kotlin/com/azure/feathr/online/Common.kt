@@ -55,7 +55,7 @@ inline fun <reified T> RoutingContext.jsonBody(): T = body().asJsonObject().mapT
 
 inline fun <reified T> JsonObject.mapAs(): T = mapTo(T::class.java)
 
-data class RequestEntry(val pipeline: String = "", val data: Map<String, Any?> = mapOf())
+data class RequestEntry(val pipeline: String = "", val data: Map<String, Any?> = mapOf(), val validate: Boolean = false)
 data class Request(val requests: List<RequestEntry> = listOf())
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

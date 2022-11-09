@@ -16,4 +16,8 @@ class Or: Operator {
     override fun getResultType(argumentTypes: List<ColumnType>): ColumnType {
         return ColumnType.BOOL
     }
+
+    override fun dump(arguments: List<String>): String {
+        return "(${arguments[0]} or ${arguments[1]})"
+    }
 }

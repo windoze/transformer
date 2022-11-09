@@ -38,6 +38,10 @@ class AppArgs(parser: ArgParser) {
     }
 }
 
+object GlobalState {
+    val vertx = Vertx.vertx()
+}
+
 fun main(args: Array<String>) = mainBody {
     ArgParser(args).parseInto(::AppArgs).run {
         DatabindCodec.mapper().setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
@@ -51,7 +55,7 @@ fun main(args: Array<String>) = mainBody {
         val log = LoggerFactory.getLogger(this.javaClass.name)
         log.info("Starting application...")
 
-        val vertx = Vertx.vertx()
+        val vertx = GlobalState.vertx
         try {
             val conf = vertx.fileSystem().readFileBlocking(conf).toString()
             runBlocking {

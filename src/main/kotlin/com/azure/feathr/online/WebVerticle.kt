@@ -2,6 +2,7 @@ package com.azure.feathr.online
 
 import com.azure.feathr.pipeline.Pipeline
 import com.azure.feathr.pipeline.parser.PipelineParser
+import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServer
 import io.vertx.ext.web.Route
@@ -81,7 +82,11 @@ open class WebVerticle(definition: String) : CoroutineVerticle() {
             .post("/process")
             .produces("application/json")
             .coroStrHandler {
-                bus.request<String>("pipeline", it.body().asString()).await().body()
+                try {
+                    bus.request<String>("pipeline", it.body().asString()).await().body()
+                } catch (e: ReplyException) {
+                    throw VertxWebException(e.message ?: "Unknown error", e.failureCode())
+                }
             }
 
 

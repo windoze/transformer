@@ -10,7 +10,5 @@ interface Operator : Initializable {
 
     fun getResultType(argumentTypes: List<ColumnType>): ColumnType
 
-    fun dump(): String {
-        return this.javaClass.simpleName
-    }
+    fun dump(arguments: List<String>): String
 }

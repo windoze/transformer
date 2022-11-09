@@ -1,5 +1,6 @@
 package com.azure.feathr.pipeline
 
+import com.azure.feathr.pipeline.operators.FunctionCall
 import com.azure.feathr.pipeline.operators.Operator
 
 interface Expression : Initializable {
@@ -83,6 +84,6 @@ class OperatorExpression(private val op: Operator, private val arguments: List<E
     }
 
     override fun dump(): String {
-        return "${op.dump()}(${arguments.joinToString(",") { it.dump() }})"
+        return op.dump(arguments.map { it.dump() })
     }
 }

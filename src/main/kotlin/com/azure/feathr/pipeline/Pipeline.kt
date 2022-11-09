@@ -25,15 +25,20 @@ class Pipeline(val inputSchema: List<Column>, private val transformations: List<
     }
 
     // The output is still a data set as the single row may explode
-    fun processSingle(input: Row): DataSet {
-        // TODO: Validate input schema
-        return process(EagerDataSet(inputSchema, listOf(input.evaluate())))
+    fun processSingle(input: List<Any?>, validate: Boolean): DataSet {
+        val row = if (validate) {
+            validateRow(input)
+        } else {
+            input
+        }
+        return process(EagerDataSet(inputSchema, listOf(row)))
     }
 
-    // The output is still a data set as the single row may explode
-    fun processSingle(input: List<Any?>): DataSet {
-        // TODO: Validate input schema
-        return process(EagerDataSet(inputSchema, listOf(input)))
+    private fun validateRow(row: List<Any?>): List<Any?> {
+        if (row.size != inputSchema.size) throw IllegalValue(row)
+        return inputSchema.zip(row).map { (col, v) ->
+            col.type.coerce(v)
+        }
     }
 
     fun dump(): String {

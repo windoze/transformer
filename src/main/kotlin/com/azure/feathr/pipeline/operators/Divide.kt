@@ -256,4 +256,7 @@ class Divide : Operator {
             else -> throw TypeMismatch("TODO")
         }
     }
+    override fun dump(arguments: List<String>): String {
+        return "${arguments[0]}[${arguments[1]}]"
+    }
 }

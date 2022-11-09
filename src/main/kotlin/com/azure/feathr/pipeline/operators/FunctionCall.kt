@@ -23,8 +23,8 @@ class FunctionCall(private val name: String) : Operator {
         function = Function.functions[name]
     }
 
-    override fun dump(): String {
-        return name
+    override fun dump(arguments: List<String>): String {
+        return "$name(${arguments.joinToString(", ")})"
     }
 
     companion object {

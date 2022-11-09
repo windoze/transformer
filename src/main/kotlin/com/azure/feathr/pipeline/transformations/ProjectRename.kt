@@ -15,7 +15,7 @@ class ProjectRename(private val renamed: Map<String, String>) : Transformation {
     }
 
     override fun dump(): String {
-        return "project-rename ${renamed.toList().joinToString(",") { "${it.first}=${it.second}" }}"
+        return "project-rename ${renamed.toList().joinToString(", ") { "${it.first}=${it.second}" }}"
     }
 
     class ProjectedDataSet(

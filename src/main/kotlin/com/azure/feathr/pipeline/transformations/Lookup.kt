@@ -5,6 +5,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
 import com.azure.feathr.pipeline.*
+import com.azure.feathr.pipeline.lookup.DemoGeoIpApiSource
 import com.azure.feathr.pipeline.lookup.LookupSource
 import com.azure.feathr.pipeline.lookup.LookupSourceRepo
 import java.util.concurrent.CompletableFuture
@@ -48,7 +49,7 @@ class Lookup(
     }
 
     override fun dump(): String {
-        return "lookup ${valueColumns.joinToString(",")} from ${lookupDataSet.dump()} on ${keyExpression.dump()}"
+        return "lookup ${valueColumns.joinToString(", ")} from ${lookupDataSet.dump()} on ${keyExpression.dump()}"
     }
 
     class LookupDataSet(
@@ -88,13 +89,19 @@ class Lookup(
                 ret.addAll(batch.zip(keys) { row, key ->
                     EagerRow(
                         transformedColumns,
-                        row.evaluate() + values.getOrDefault(key, keyNotFound).map {
+                        row.evaluate().map { it?.getDynamic() } + values.getOrDefault(key, keyNotFound).map {
                             it?.getDynamic()
                         }
                     )
                 })
             }
             return ret
+        }
+    }
+
+    companion object {
+        init {
+            LookupSourceRepo.register("geoip", DemoGeoIpApiSource())
         }
     }
 }

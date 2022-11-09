@@ -16,4 +16,8 @@ class And : Operator {
     override fun getResultType(argumentTypes: List<ColumnType>): ColumnType {
         return ColumnType.BOOL
     }
+
+    override fun dump(arguments: List<String>): String {
+        return "(${arguments[0]} and ${arguments[1]})"
+    }
 }

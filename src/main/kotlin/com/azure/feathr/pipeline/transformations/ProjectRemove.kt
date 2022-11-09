@@ -20,7 +20,7 @@ class ProjectRemove(private val removed: List<String>) : Transformation {
     }
 
     override fun dump(): String {
-        return "project-remove ${removed.joinToString(",")}"
+        return "project-remove ${removed.joinToString(", ")}"
     }
 
     class ProjectedDataSet(private val removed: List<String>, private val input: DataSet) :

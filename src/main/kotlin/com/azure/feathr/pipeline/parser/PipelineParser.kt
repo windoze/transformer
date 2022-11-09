@@ -84,6 +84,7 @@ class PipelineParser {
             is FunctionContext -> parseFunction(t)
             is NumberContext -> parseNumber(t)
             is StrContext -> parseString(t)
+            is BoolContext -> parseBool(t)
             else -> {
                 // ( expr )
                 if (ctx.childCount == 3 && ctx.getChild(0).text == "(") {
@@ -185,6 +186,11 @@ class PipelineParser {
             .replace("\\\"", "\"")
             .replace("\\\\", "\\")
         return ConstantExpression(s, ColumnType.STRING)
+    }
+
+    private fun parseBool(ctx: BoolContext): ConstantExpression {
+        val rawText = ctx.getChild(0).text
+        return ConstantExpression(rawText == "true", ColumnType.BOOL)
     }
 
     private fun parseInteger(ctx: NumberContext): Long {

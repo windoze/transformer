@@ -20,7 +20,7 @@ class Project(private val addition: List<Pair<String, Expression>>) : Transforma
     }
 
     override fun dump(): String {
-        return "project ${addition.joinToString(",") { "${it.first}=${it.second.dump()}" }}"
+        return "project ${addition.joinToString(", ") { "${it.first}=${it.second.dump()}" }}"
     }
 
     class ProjectedDataSet(
