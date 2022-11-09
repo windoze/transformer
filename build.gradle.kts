@@ -11,7 +11,7 @@ group = "com.azure"
 version = "1.0-SNAPSHOT"
 
 val vertxVersion = "4.3.4"
-val mainClassName = "MainKt"
+val mainClassName = "com.azure.feathr.MainKt"
 
 repositories {
     mavenCentral()
@@ -51,15 +51,13 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-tasks.shadowJar {
-    dependsOn("build")
-
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveBaseName.set("app")
     archiveVersion.set("")
     archiveClassifier.set("")
 
     manifest {
-        attributes["Main-Class"] = mainClassName
+        attributes["Main-Class"] = "com.azure.feathr.MainKt"
     }
     mergeServiceFiles {
         include("META-INF/services/io.vertx.core.spi.VerticleFactory")
@@ -67,5 +65,5 @@ tasks.shadowJar {
 }
 
 application {
-    mainClass.set(mainClassName)
+    mainClass.value("com.azure.feathr.MainKt")
 }

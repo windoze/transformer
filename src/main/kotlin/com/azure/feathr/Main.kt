@@ -1,3 +1,5 @@
+package com.azure.feathr
+
 import ch.qos.logback.classic.Level
 import com.azure.feathr.online.PipelineVerticle
 import com.azure.feathr.online.WebVerticle
@@ -6,18 +8,17 @@ import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
 import com.xenomachina.argparser.mainBody
-import io.vertx.core.*
+import io.vertx.core.CompositeFuture
+import io.vertx.core.DeploymentOptions
+import io.vertx.core.Vertx
 import io.vertx.core.json.jackson.DatabindCodec
 import io.vertx.core.logging.LoggerFactory.LOGGER_DELEGATE_FACTORY_CLASS_NAME
 import io.vertx.core.logging.SLF4JLogDelegateFactory
 import io.vertx.kotlin.core.json.Json
 import io.vertx.kotlin.core.json.obj
 import io.vertx.kotlin.coroutines.await
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
-import net.logstash.logback.argument.StructuredArguments.kv
 import org.slf4j.LoggerFactory
-import java.util.concurrent.CompletableFuture
 import kotlin.system.exitProcess
 
 class AppArgs(parser: ArgParser) {
