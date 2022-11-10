@@ -93,7 +93,8 @@ tasks.register<Tar>("prepareDocker") {
     destinationDirectory.set(layout.buildDirectory.dir("docker"))
 
     from(projectDir) {
-        include("conf/*.json")
+        include("conf/pipeline.conf")
+        include("conf/lookup.json")
     }
     from("${buildDir}/libs/app.jar") {
         into("app")
