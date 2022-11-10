@@ -3,36 +3,38 @@ package com.azure.feathr.pipeline.lookup
 import com.azure.feathr.GlobalState
 import com.azure.feathr.pipeline.ColumnType
 import com.azure.feathr.pipeline.Value
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.linkedin.feathr.common.types.protobuf.FeatureValueOuterClass.FeatureValue
-import io.vertx.core.net.NetClientOptions
-import io.vertx.kotlin.coroutines.await
+import io.lettuce.core.ExperimentalLettuceCoroutinesApi
+import io.lettuce.core.RedisClient
+import io.lettuce.core.api.coroutines
 import io.vertx.kotlin.coroutines.dispatcher
-import io.vertx.redis.client.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.future.future
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
 class FeathrRedisSource(
-    val name: String = "",
-    val host: String = "",
-    val ssl: Boolean = true,
-    val password: String = "",
-    val table: String = ""
+    private val name: String = "",
+    private val host: String = "",
+    private val port: Int = 6379,
+    private val ssl: Boolean = true,
+    private val password: String = "",
+    private val table: String = ""
 ) : LookupSource {
-    private val client: Redis by lazy {
-        Redis.createClient(
-            GlobalState.vertx,
-            RedisOptions()
-                .setEndpoints(listOf(host))
-                .setPassword(password)
-                .setNetClientOptions(NetClientOptions().setSsl(ssl))
-        )
+    private val client: RedisClient by lazy {
+        val proto = if (ssl) "rediss" else "redis"
+        val h = if (port == 6379) host else "$host:$port"
+        val endpoint = if (password.isBlank()) {
+            h
+        } else {
+            "$password@$h"
+        }
+        RedisClient.create("$proto://$endpoint")
     }
 
-    private val redis: RedisAPI by lazy {
-        RedisAPI.api(client)
+    @OptIn(ExperimentalLettuceCoroutinesApi::class)
+    private val api by lazy {
+        client.connect().coroutines()
     }
 
     override val sourceName: String
@@ -48,36 +50,20 @@ class FeathrRedisSource(
         }
     }
 
-    override fun batchGet(keySet: Set<Value>, fields: List<String>): CompletableFuture<Map<Value, List<Value?>>> {
-        val ks = keySet.mapNotNull {
-            it.getString()
-        }.toSet()
-        return CoroutineScope(GlobalState.vertx.dispatcher()).future {
-            batchGetAsync(ks, fields)
-        }
-    }
-
+    @OptIn(ExperimentalLettuceCoroutinesApi::class)
     private suspend fun getAsync(key: String, fields: List<String>): List<Value?> {
-        val ret = redis.hmget(listOf(constructKey(key)) + fields)
+        val ret: MutableList<String> = mutableListOf()
+        api.hmget(constructKey(key), *fields.toTypedArray()).collect {
+            println("${it.key}, ${it.value}")
+            ret.add(it.value)
+        }
 
-        return parseResponse(ret.await(), fields)
+        return parseResponse(ret)
     }
 
-    private suspend fun batchGetAsync(keySet: Set<String>, fields: List<String>): Map<Value, List<Value?>> {
-        val keyList = keySet.toList()
-        val cmdArg = fields.toTypedArray()
-        val batch = keyList.map {
-            Request.cmd(Command.HMGET, constructKey(it), *cmdArg)
-        }
-        val responses = client.batch(batch).await()
-        return keyList.zip(responses).associate { (k, r) ->
-            Value(ColumnType.STRING, k) to parseResponse(r, fields)
-        }
-    }
-
-    private fun parseResponse(resp: Response, fields: List<String>): List<Value?> {
+    private fun parseResponse(resp: List<String>): List<Value?> {
         val featureValues = resp.toList().map {
-            FeatureValue.parseFrom(Base64.getDecoder().decode(it.toString()))
+            FeatureValue.parseFrom(Base64.getDecoder().decode(it))
         }
         return featureValues.map { featureValueToValue(it) }
     }
@@ -92,10 +78,10 @@ class FeathrRedisSource(
         if (fv.hasLongValue()) {
             return Value(ColumnType.LONG, fv.longValue)
         }
-        if (fv.hasFloatArray()) {
+        if (fv.hasFloatValue()) {
             return Value(ColumnType.FLOAT, fv.floatValue)
         }
-        if (fv.hasDoubleArray()) {
+        if (fv.hasDoubleValue()) {
             return Value(ColumnType.DOUBLE, fv.doubleValue)
         }
         if (fv.hasStringValue()) {

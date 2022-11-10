@@ -11,6 +11,7 @@ plugins {
 group = "com.azure"
 version = "1.0-SNAPSHOT"
 
+val kotlinCoroutineVersion = "1.6.4"
 val vertxVersion = "4.3.4"
 val protobufVersion = "3.21.9"
 val mainClassName = "com.azure.feathr.MainKt"
@@ -22,15 +23,17 @@ repositories {
 dependencies {
     antlr("org.antlr:antlr4:4.11.1") // use ANTLR version 4
     implementation("org.antlr:antlr4-runtime:4.11.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlinCoroutineVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutineVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$kotlinCoroutineVersion")
     implementation("ch.qos.logback:logback-classic:1.4.4")
     implementation("net.logstash.logback:logstash-logback-encoder:7.2")
     implementation("io.vertx:vertx-core:$vertxVersion")
     implementation("io.vertx:vertx-web:$vertxVersion")
     implementation("io.vertx:vertx-web-client:$vertxVersion")
-    implementation("io.vertx:vertx-redis-client:$vertxVersion")
     implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
     implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
+    implementation("io.lettuce:lettuce-core:6.2.1.RELEASE")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
     implementation("com.xenomachina:kotlin-argparser:2.0.7")

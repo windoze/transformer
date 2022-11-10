@@ -39,7 +39,7 @@ interface LookupSource {
 }
 
 object LookupSourceRepo {
-    private val lookupSources: MutableMap<String, LookupSource> = mutableMapOf()
+    val lookupSources: MutableMap<String, LookupSource> = mutableMapOf()
 
     fun register(source: LookupSource) {
         lookupSources[source.sourceName] = source

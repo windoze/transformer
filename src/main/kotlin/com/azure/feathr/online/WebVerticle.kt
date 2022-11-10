@@ -1,6 +1,7 @@
 package com.azure.feathr.online
 
 import com.azure.feathr.pipeline.Pipeline
+import com.azure.feathr.pipeline.lookup.LookupSourceRepo
 import com.azure.feathr.pipeline.parser.PipelineParser
 import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.http.HttpMethod
@@ -76,6 +77,13 @@ open class WebVerticle(definition: String) : CoroutineVerticle() {
             .produces("application/json")
             .coroHandler {
                 pipelines.mapValues { pipelineToJson(it.value) }
+            }
+
+        router
+            .get("/lookup-sources")
+            .produces("application/json")
+            .coroHandler {
+                LookupSourceRepo.lookupSources
             }
 
         router
