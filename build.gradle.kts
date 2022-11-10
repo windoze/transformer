@@ -40,6 +40,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
     implementation("com.xenomachina:kotlin-argparser:2.0.7")
     implementation("com.google.protobuf:protobuf-java:$protobufVersion")
+    implementation("com.noenv:vertx-jsonpath:4.3.4")
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
     testImplementation("io.vertx:vertx-unit:$vertxVersion")

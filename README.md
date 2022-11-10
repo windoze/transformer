@@ -55,3 +55,9 @@ curl -v -XPOST -H"content-type:application/json" localhost:8000/process -d'{
 }'
 
 ```
+
+TODO:
+-----
+* CosmosDbSource
+* HttpJsonApiSource auth support
+* Better Redis client that supports async batch
