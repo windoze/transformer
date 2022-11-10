@@ -90,6 +90,14 @@ class FeathrRedisSource(
         if (fv.hasBooleanArray()) {
             return Value(ColumnType.ARRAY, fv.booleanArray.booleansList.toList())
         }
+        if (fv.hasByteArray()) {
+            // ByteArray is array of ByteString, or byte sequence
+            // So logically it's an array of array of bytes
+            return Value(
+                ColumnType.ARRAY,
+                fv.byteArray.bytesList.map { it.map { byte -> byte.toInt() }.toList() }.toList()
+            )
+        }
         if (fv.hasIntArray()) {
             return Value(ColumnType.ARRAY, fv.intArray.integersList.toList())
         }
