@@ -1,6 +1,6 @@
 package com.azure.feathr.pipeline.lookup
 
-import com.azure.feathr.GlobalState
+import com.azure.feathr.Main
 import com.azure.feathr.pipeline.ColumnType
 import com.azure.feathr.pipeline.Value
 import com.linkedin.feathr.common.types.protobuf.FeatureValueOuterClass.FeatureValue
@@ -45,7 +45,7 @@ class FeathrRedisSource(
         val k = key.getString()
         if (k.isNullOrBlank())
             return CompletableFuture.completedFuture(List(fields.size) { Value(ColumnType.DYNAMIC, null) })
-        return CoroutineScope(GlobalState.vertx.dispatcher()).future {
+        return CoroutineScope(Main.vertx.dispatcher()).future {
             getAsync(k, fields)
         }
     }

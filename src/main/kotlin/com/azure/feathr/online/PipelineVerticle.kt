@@ -7,12 +7,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.toReceiveChannel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.future.await
 
 class PipelineVerticle : CoroutineVerticle() {
     private val mapper = ObjectMapper()
     private var pipelines: Map<String, Pipeline> = mutableMapOf()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun start() {
         super.start()
 

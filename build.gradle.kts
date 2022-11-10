@@ -1,3 +1,5 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -6,6 +8,7 @@ plugins {
     antlr
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("com.google.protobuf") version "0.9.1"
+    id("com.bmuschko.docker-remote-api") version "8.1.0"
 }
 
 group = "com.azure"
@@ -14,7 +17,6 @@ version = "1.0-SNAPSHOT"
 val kotlinCoroutineVersion = "1.6.4"
 val vertxVersion = "4.3.4"
 val protobufVersion = "3.21.9"
-val mainClassName = "com.azure.feathr.MainKt"
 
 repositories {
     mavenCentral()
@@ -44,14 +46,18 @@ dependencies {
 
 }
 
-tasks.generateGrammarSource {
-    arguments = arguments + listOf("-package", "com.azure.feathr.pipeline.parser")
+application {
+    mainClass.value("com.azure.feathr.Main")
 }
 
 protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc:$protobufVersion"
     }
+}
+
+tasks.generateGrammarSource {
+    arguments = arguments + listOf("-package", "com.azure.feathr.pipeline.parser")
 }
 
 tasks.compileKotlin {
@@ -73,13 +79,38 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveClassifier.set("")
 
     manifest {
-        attributes["Main-Class"] = "com.azure.feathr.MainKt"
+        attributes["Main-Class"] = "com.azure.feathr.Main"
     }
     mergeServiceFiles {
         include("META-INF/services/io.vertx.core.spi.VerticleFactory")
     }
 }
 
-application {
-    mainClass.value("com.azure.feathr.MainKt")
+tasks.register<Tar>("prepareDocker") {
+    dependsOn("shadowJar")
+
+    archiveFileName.set("add.tar")
+    destinationDirectory.set(layout.buildDirectory.dir("docker"))
+
+    from(projectDir) {
+        include("conf/*.json")
+    }
+    from("${buildDir}/libs/app.jar") {
+        into("app")
+    }
+}
+
+tasks.register<Copy>("collectArtifacts") {
+    dependsOn("prepareDocker")
+
+    into("${buildDir}/docker")
+    from("${projectDir}") {
+        include("Dockerfile")
+    }
+}
+
+tasks.register<DockerBuildImage>("docker") {
+    dependsOn("collectArtifacts")
+    inputDir.set(layout.buildDirectory.dir("docker"))
+    images.add("windoze/transformer:latest")
 }

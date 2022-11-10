@@ -21,6 +21,8 @@ class LookupTest {
             "k3" to listOf(Value(ColumnType.INT, 300), Value(ColumnType.STRING, "str_value3")),
             "k4" to listOf(Value(ColumnType.INT, 400), Value(ColumnType.STRING, "str_value4")),
         )
+        override val sourceName: String
+            get() = "test_lookup_source"
 
         override fun get(key: Value, fields: List<String>): CompletableFuture<List<Value?>> {
             val v = store[key.getString() ?: ""]
