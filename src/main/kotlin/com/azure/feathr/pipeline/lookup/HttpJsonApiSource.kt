@@ -25,6 +25,7 @@ data class HttpJsonApiSource(
 
     // Key in header
     val keyHeader: String = "",
+    val keyHeaderTemplate: String = "",
 
     // Key in query param
     val keyQueryParam: String = "",
@@ -71,7 +72,11 @@ data class HttpJsonApiSource(
         }
 
         if (keyHeader.isNotBlank()) {
-            request.putHeader(keyHeader, key)
+            if (keyHeaderTemplate.isBlank()) {
+                request.putHeader(keyHeader, key)
+            } else {
+                request.putHeader(keyHeader, keyHeaderTemplate.replace("$", key))
+            }
         }
 
         val resp = if (!requestTemplate.isEmpty) {
@@ -127,6 +132,7 @@ data class HttpJsonApiSource(
                     k.toString() to convJsonValue(v)
                 }
             }
+
             else -> TODO("Unknown value $v")
         }
     }
