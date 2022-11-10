@@ -75,7 +75,16 @@ fun main(args: Array<String>) = mainBody {
                         .forEach {
                             val clazz = it.getString("class")
                             it.remove("class")
-                            val src = it.mapTo(Class.forName(clazz)) as LookupSource
+                            val cls = Class.forName(
+                                if (clazz.contains('.')) {
+                                    // Full qualified class name
+                                    clazz
+                                } else {
+                                    // Default to internal package
+                                    "com.azure.feathr.pipeline.lookup.$clazz"
+                                }
+                            )
+                            val src = it.mapTo(cls) as LookupSource
                             LookupSourceRepo.register(src)
                         }
                 }
