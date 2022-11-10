@@ -44,6 +44,7 @@ object Main {
 
     val vertx = Vertx.vertx()!!
 
+    @JvmStatic
     fun main(args: Array<String>) = mainBody {
         ArgParser(args).parseInto(::AppArgs).run {
             DatabindCodec.mapper().setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
