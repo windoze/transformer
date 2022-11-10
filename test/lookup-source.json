@@ -1,8 +1,34 @@
 {
   "sources": [
     {
-      "class": "com.azure.feathr.pipeline.lookup.DemoGeoIpApiSource",
-      "name": "geoip"
+      "class": "FeathrRedisSource",
+      "name": "feathrci",
+      "host": "SOME_REDIS_HOST:6380",
+      "password": "SOME_PASSWORD",
+      "ssl": true,
+      "table": "tab1"
+    },
+    {
+      "class": "HttpJsonApiSource",
+      "name": "geoip",
+      "urlBase": "http://ip-api.com",
+      "keyUrlTemplate": "/json/$",
+      "resultPath": {
+        "status": "$.status",
+        "country": "$.country",
+        "countryCode": "$.countryCode",
+        "region": "$.region",
+        "regionName": "$.regionName",
+        "city": "$.city",
+        "zip": "$.zip",
+        "lat": "$.lat",
+        "lon": "$.lon",
+        "timezone": "$.timezone",
+        "isp": "$.isp",
+        "org": "$.org",
+        "as": "$.as",
+        "query": "$.query"
+      }
     }
   ]
 }
