@@ -54,7 +54,6 @@ class FeathrRedisSource(
     private suspend fun getAsync(key: String, fields: List<String>): List<Value?> {
         val ret: MutableList<String> = mutableListOf()
         api.hmget(constructKey(key), *fields.toTypedArray()).collect {
-            println("${it.key}, ${it.value}")
             ret.add(it.value)
         }
 
