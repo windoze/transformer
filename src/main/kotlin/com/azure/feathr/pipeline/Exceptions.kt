@@ -13,3 +13,7 @@ class IllegalValue(v: Any?): TransformerException("Value $v is illegal")
 class KeyNotFound(k: String): TransformerException("Key '$k' is not found")
 
 class IndexOutOfBound(idx: Int?): TransformerException ("Index $idx is out of bound")
+
+class InvalidReference(name: String): TransformerException("Invalid reference to '$name'")
+
+class IllegalArguments(message: String): TransformerException(message)

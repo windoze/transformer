@@ -133,5 +133,8 @@ BIN     : '0' [bB] [01]+ ;
 
 WS  : [ \t\r\n]+ -> skip ;    // toss out whitespace
 
+LINE_COMMENT
+    : '#' ~[\r\n]* -> channel(HIDDEN)
+    ;
 
 fragment DIGIT  : [0-9];

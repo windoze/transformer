@@ -5,12 +5,14 @@ plugins {
     application
     antlr
     id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.google.protobuf") version "0.9.1"
 }
 
 group = "com.azure"
 version = "1.0-SNAPSHOT"
 
 val vertxVersion = "4.3.4"
+val protobufVersion = "3.21.9"
 val mainClassName = "com.azure.feathr.MainKt"
 
 repositories {
@@ -26,22 +28,32 @@ dependencies {
     implementation("io.vertx:vertx-core:$vertxVersion")
     implementation("io.vertx:vertx-web:$vertxVersion")
     implementation("io.vertx:vertx-web-client:$vertxVersion")
+    implementation("io.vertx:vertx-redis-client:$vertxVersion")
     implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
     implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.4.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
     implementation("com.xenomachina:kotlin-argparser:2.0.7")
+    implementation("com.google.protobuf:protobuf-java:$protobufVersion")
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
     testImplementation("io.vertx:vertx-unit:$vertxVersion")
+
 }
 
 tasks.generateGrammarSource {
     arguments = arguments + listOf("-package", "com.azure.feathr.pipeline.parser")
 }
 
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:$protobufVersion"
+    }
+}
+
 tasks.compileKotlin {
     dependsOn("generateGrammarSource")
+    dependsOn("generateProto")
 }
 
 tasks.test {

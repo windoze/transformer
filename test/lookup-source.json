@@ -1,0 +1,8 @@
+{
+  "sources": [
+    {
+      "class": "com.azure.feathr.pipeline.lookup.DemoGeoIpApiSource",
+      "name": "geoip"
+    }
+  ]
+}

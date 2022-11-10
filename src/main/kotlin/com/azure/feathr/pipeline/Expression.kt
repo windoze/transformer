@@ -15,6 +15,7 @@ class GetColumn(private val columnName: String) : Expression {
 
     override fun initialize(columns: List<Column>) {
         index = columns.indexOfFirst { it.name == columnName }
+        if (index < 0) throw InvalidReference(columnName)
     }
 
     override fun getResultType(columnTypes: List<ColumnType>): ColumnType {
@@ -31,6 +32,11 @@ class GetColumn(private val columnName: String) : Expression {
 }
 
 class GetColumnByIndex(private val index: Int) : Expression {
+    override fun initialize(columns: List<Column>) {
+        if (index >= columns.size)
+            throw InvalidReference("column$index")
+    }
+
     override fun getResultType(columnTypes: List<ColumnType>): ColumnType {
         return columnTypes[index]
     }
@@ -54,7 +60,7 @@ class ConstantExpression(private val constant: Any?, private val type: ColumnTyp
     }
 
     override fun dump(): String {
-        if (constant is String) return "\"$constant\""
+        if (constant is String) return "\"$constant\""     // TODO: Escape
         return constant.toString()
     }
 }
@@ -77,6 +83,8 @@ class OperatorExpression(private val op: Operator, private val arguments: List<E
     }
 
     override fun initialize(columns: List<Column>) {
+        if ((op.arity >= 0) && op.arity != arguments.size)
+            throw IllegalArguments("The number of arguments is incorrect")
         op.initialize(columns)
         arguments.forEach {
             it.initialize(columns)

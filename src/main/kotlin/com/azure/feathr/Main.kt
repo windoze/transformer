@@ -3,14 +3,18 @@ package com.azure.feathr
 import ch.qos.logback.classic.Level
 import com.azure.feathr.online.PipelineVerticle
 import com.azure.feathr.online.WebVerticle
+import com.azure.feathr.pipeline.lookup.LookupSource
+import com.azure.feathr.pipeline.lookup.LookupSourceRepo
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
 import com.xenomachina.argparser.mainBody
 import io.vertx.core.CompositeFuture
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import io.vertx.core.json.jackson.DatabindCodec
 import io.vertx.core.logging.LoggerFactory.LOGGER_DELEGATE_FACTORY_CLASS_NAME
 import io.vertx.core.logging.SLF4JLogDelegateFactory
@@ -22,7 +26,8 @@ import org.slf4j.LoggerFactory
 import kotlin.system.exitProcess
 
 class AppArgs(parser: ArgParser) {
-    val conf by parser.storing("-c", "--conf", help = "config file name").default("pipeline.conf")
+    val pipeline by parser.storing("-p", "--pipeline", help = "pipeline definition file name").default("pipeline.conf")
+    val lookup by parser.storing("-l", "--lookup", help = "lookup source definition file name").default("")
     val debug by parser.flagging("-d", "--debug", help = "show all debug logs").default(false)
     val verbose by parser.flagging("-v", "--verbose", help = "show debug log for the service only").default(false)
 
@@ -39,7 +44,11 @@ class AppArgs(parser: ArgParser) {
 }
 
 object GlobalState {
-    val vertx = Vertx.vertx()
+    val vertx = Vertx.vertx()!!
+}
+
+fun initLookupSources() {
+
 }
 
 fun main(args: Array<String>) = mainBody {
@@ -57,7 +66,28 @@ fun main(args: Array<String>) = mainBody {
 
         val vertx = GlobalState.vertx
         try {
-            val conf = vertx.fileSystem().readFileBlocking(conf).toString()
+            if (lookup.isNotBlank()) {
+                val lookup = vertx.fileSystem().readFileBlocking(lookup).toString()
+                if (lookup.isNotBlank()) {
+                    val j = JsonObject(lookup)
+                    j.getJsonArray("sources")
+                        .map { it as JsonObject }
+                        .forEach {
+                            val clazz = it.getString("class")
+                            it.remove("class")
+                            val src = it.mapTo(Class.forName(clazz)) as LookupSource
+                            LookupSourceRepo.register(src)
+                        }
+                }
+            }
+        } catch (e: io.vertx.core.file.FileSystemException) {
+            log.warn("Lookup source definition file '$lookup' not found.")
+        } catch (e: Throwable) {
+            log.error("Failed to load lookup sources")
+            exitProcess(1)
+        }
+        try {
+            val conf = vertx.fileSystem().readFileBlocking(pipeline).toString()
             runBlocking {
                 val fp = vertx.deployVerticle(
                     PipelineVerticle::class.java,
@@ -72,43 +102,11 @@ fun main(args: Array<String>) = mainBody {
                 log.info("Application started.")
             }
         } catch (e: io.vertx.core.file.FileSystemException) {
-            log.warn("Config file '$conf' not found.")
+            log.warn("Pipeline definition file '$pipeline' not found.")
+            exitProcess(1)
+        } catch (e: Throwable) {
+            log.error("Failed to load pipeline definitions")
             exitProcess(1)
         }
     }
 }
-
-
-//suspend fun main(args: Array<String>) {
-//    val src =
-//        """
-//        t1(f1 as int, f2 as int, f3 as string, f4 as array)
-//        | where f2>100
-//        | project f5 = substring(f3, 2), f6 = "abc\txyz"
-//        | top 3 by f2+10 desc
-//        | mv-expand f4 as int;
-//        """.trimIndent()
-//    val pipelines = PipelineParser().parse(src)
-//    println(pipelines.toList().joinToString("\n") { "${it.first}${it.second.dump()}" })
-//
-//    println(pipelines["t1"]!!.outputSchema.dump())
-//
-//    val ds = EagerDataSet(
-//        listOf(
-//            Column("f1", ColumnType.INT),
-//            Column("f2", ColumnType.INT),
-//            Column("f3", ColumnType.STRING),
-//            Column("f4", ColumnType.ARRAY)
-//        ),
-//        listOf(
-//            listOf(10, 100, "foo1", listOf(1, 2)),
-//            listOf(20, 200, "foo2", listOf(1, 2, 3)),
-//            listOf(30, 300, "foo3", listOf(1, 2, 3, 4)),
-//            listOf(40, 400, "foo4", listOf(1, 2, 3, 4, 5)),
-//            listOf(50, 500, "foo5", listOf(1, 2, 3, 4, 5, 6)),
-//        )
-//    )
-//
-//    val tds = pipelines["t1"]!!.process(ds).fetchAll().await()
-//    tds.dump()
-//}

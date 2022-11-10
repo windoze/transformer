@@ -12,19 +12,23 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
 
-class DemoGeoIpApiSource : LookupSource {
+class DemoGeoIpApiSource(val name: String = "") : LookupSource {
     private val webClient: WebClient = WebClient.create(GlobalState.vertx)
+
+    override val sourceName: String
+        get() = name
+
+    override fun getBatchSize(): Int {
+        // I really have no idea how many concurrent connection that "ip-api.com" supports
+        return 5
+    }
 
     override fun get(key: Value, fields: List<String>): CompletableFuture<List<Value?>> {
         val ip = key.getString() ?: ""
         return CoroutineScope(GlobalState.vertx.dispatcher()).future { getAsync(ip, fields) }
     }
 
-    override fun dump(): String {
-        return "geoip"
-    }
-
-    suspend fun getAsync(ip: String, fields: List<String>): List<Value> {
+    private suspend fun getAsync(ip: String, fields: List<String>): List<Value> {
         val s = webClient.get(80, "ip-api.com", "/json/$ip")
             .send()
             .await()

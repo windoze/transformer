@@ -1,13 +1,12 @@
 package com.azure.feathr.pipeline.transformations
 
+import com.azure.feathr.pipeline.*
+import com.azure.feathr.pipeline.lookup.LookupSource
+import com.azure.feathr.pipeline.lookup.LookupSourceRepo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
-import com.azure.feathr.pipeline.*
-import com.azure.feathr.pipeline.lookup.DemoGeoIpApiSource
-import com.azure.feathr.pipeline.lookup.LookupSource
-import com.azure.feathr.pipeline.lookup.LookupSourceRepo
 import java.util.concurrent.CompletableFuture
 import kotlin.math.min
 
@@ -22,7 +21,13 @@ class Lookup(
         keyExpression: Expression,
         lookupDataSetName: String,
         batchSize: Int = 100
-    ) : this(valueColumns, keyExpression, LookupSourceRepo[lookupDataSetName], batchSize)
+    ) : this(
+        valueColumns,
+        keyExpression,
+        if (LookupSourceRepo.contains(lookupDataSetName)) LookupSourceRepo[lookupDataSetName]
+        else throw InvalidReference(lookupDataSetName),
+        batchSize
+    )
 
     override fun transform(input: DataSet): DataSet {
         return LookupDataSet(
@@ -96,12 +101,6 @@ class Lookup(
                 })
             }
             return ret
-        }
-    }
-
-    companion object {
-        init {
-            LookupSourceRepo.register("geoip", DemoGeoIpApiSource())
         }
     }
 }
