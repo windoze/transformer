@@ -48,15 +48,15 @@ data class HttpJsonApiSource(
         get() = name
 
     override fun get(key: Value, fields: List<String>): CompletableFuture<List<Value?>> {
-        val k = key.getString() ?: return CompletableFuture.completedFuture(List(fields.size) {
+        val k = key.getDynamic() ?: return CompletableFuture.completedFuture(List(fields.size) {
             Value(ColumnType.DYNAMIC, null)
         })
         return CoroutineScope(Main.vertx.dispatcher()).future { requestAsync(k, fields) }
     }
 
-    private suspend fun requestAsync(key: String, fields: List<String>): List<Value> {
+    private suspend fun requestAsync(key: Any, fields: List<String>): List<Value> {
         val url = if (keyUrlTemplate.isNotBlank()) {
-            urlBase + keyUrlTemplate.replace("$", key)
+            urlBase + keyUrlTemplate.replace("$", key.toString())
         } else {
             urlBase
         }
@@ -64,7 +64,7 @@ data class HttpJsonApiSource(
         val request = client.requestAbs(getMethod(), url)
 
         if (keyQueryParam.isNotBlank()) {
-            request.addQueryParam(keyQueryParam, key)
+            request.addQueryParam(keyQueryParam, key.toString())
         }
 
         additionalHeaders.forEach { (h, v) ->
@@ -73,9 +73,9 @@ data class HttpJsonApiSource(
 
         if (keyHeader.isNotBlank()) {
             if (keyHeaderTemplate.isBlank()) {
-                request.putHeader(keyHeader, key)
+                request.putHeader(keyHeader, key.toString())
             } else {
-                request.putHeader(keyHeader, keyHeaderTemplate.replace("$", key))
+                request.putHeader(keyHeader, keyHeaderTemplate.replace("$", key.toString()))
             }
         }
 
@@ -108,7 +108,7 @@ data class HttpJsonApiSource(
         return convJsonValue(JsonPath.getValue(o, path))
     }
 
-    private fun setValue(o: JsonObject, path: String, value: String) {
+    private fun setValue(o: JsonObject, path: String, value: Any) {
         JsonPath.put(o, path, value)
     }
 
