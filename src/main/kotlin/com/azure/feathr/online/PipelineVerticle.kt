@@ -1,8 +1,10 @@
 package com.azure.feathr.online
 
-import com.azure.feathr.pipeline.Pipeline
-import com.azure.feathr.pipeline.TransformerException
+import com.azure.feathr.pipeline.*
+import com.azure.feathr.pipeline.operators.Plus
 import com.azure.feathr.pipeline.parser.PipelineParser
+import com.azure.feathr.pipeline.transformations.Project
+import com.azure.feathr.pipeline.transformations.Transformation
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.vertx.kotlin.coroutines.CoroutineVerticle
@@ -18,7 +20,10 @@ class PipelineVerticle : CoroutineVerticle() {
     override suspend fun start() {
         super.start()
 
-        pipelines = PipelineParser().parse(config.getString("conf"))
+        // Heath check pipeline, make sure the whole thing works
+        pipelines = PipelineParser().parse(config.getString("conf")) + mapOf(
+            "%healthcheck" to healthChecker
+        )
 
         val bus = vertx.eventBus()
         val consumer = bus.localConsumer<String>("pipeline")
@@ -62,5 +67,35 @@ class PipelineVerticle : CoroutineVerticle() {
         } catch (e: Throwable) {
             throw InternalErrorException(e.message ?: "Internal error")
         }
+    }
+
+    companion object {
+        /**
+         * The health check pipeline, equivalent to
+         * ```
+         * %healthcheck(n as int)
+         * | project m = n + 42
+         * ;
+         * ```
+         */
+        val healthChecker = Pipeline(
+            listOf(Column("n", ColumnType.INT)),
+            listOf(
+                Project(
+                    listOf(
+                        Pair(
+                            "m",
+                            OperatorExpression(
+                                Plus(),
+                                listOf(
+                                    GetColumnByIndex(0),
+                                    ConstantExpression(42, ColumnType.INT)
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
     }
 }

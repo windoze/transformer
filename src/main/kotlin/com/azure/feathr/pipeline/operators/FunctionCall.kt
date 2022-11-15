@@ -53,6 +53,7 @@ class FunctionCall(private val name: String) : Operator {
             Function.register("len", Len())
             Function.register("case", Case())
             Function.register("bucket", Bucket())
+            Function.register("timestamp", Timestamp())
         }
     }
 }

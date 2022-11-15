@@ -3,6 +3,7 @@ package com.azure.feathr.online
 import com.azure.feathr.pipeline.Pipeline
 import com.azure.feathr.pipeline.lookup.LookupSourceRepo
 import com.azure.feathr.pipeline.parser.PipelineParser
+import io.vertx.core.eventbus.EventBus
 import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServer
@@ -18,6 +19,7 @@ import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.launch
 import net.logstash.logback.argument.StructuredArguments
 import org.slf4j.LoggerFactory
+import io.vertx.core.json.JsonObject
 
 open class WebVerticle(definition: String) : CoroutineVerticle() {
     @Transient
@@ -28,13 +30,16 @@ open class WebVerticle(definition: String) : CoroutineVerticle() {
 
     private val pipelines: Map<String, Pipeline> = PipelineParser().parse(definition)
 
-    val router: Router by lazy {
+    private val router: Router by lazy {
         Router.router(vertx)
+    }
+
+    private val bus: EventBus by lazy {
+        vertx.eventBus()
     }
 
     override suspend fun start() {
         log.info("Starting ${this.javaClass.name}...")
-        val bus = vertx.eventBus()
 
         server = vertx.createHttpServer()
         router.route()
@@ -129,7 +134,7 @@ open class WebVerticle(definition: String) : CoroutineVerticle() {
         )
     }
 
-    fun Route.coroStrHandler(handler: suspend (RoutingContext) -> String) {
+    private fun Route.coroStrHandler(handler: suspend (RoutingContext) -> String) {
         handler {
             launch(it.vertx().dispatcher()) {
                 try {
@@ -143,7 +148,7 @@ open class WebVerticle(definition: String) : CoroutineVerticle() {
         }
     }
 
-    fun Route.coroHandler(handler: suspend (RoutingContext) -> Any) {
+    private fun Route.coroHandler(handler: suspend (RoutingContext) -> Any) {
         handler {
             launch(it.vertx().dispatcher()) {
                 try {
@@ -157,5 +162,17 @@ open class WebVerticle(definition: String) : CoroutineVerticle() {
         }
     }
 
-    open suspend fun healthCheck(): Boolean = true
+    open suspend fun healthCheck(): Boolean {
+        // Check by calling %healthcheck pipeline, 57+42=99
+        val req = """{"requests": [{ "pipeline": "%healthcheck", "data": { "n": 57 } }]}"""
+        val resp = JsonObject(bus.request<String>("pipeline", req).await().body())
+        val m = resp
+            .getJsonArray("results")
+            ?.getJsonObject(0)
+            ?.getJsonArray("data")
+            ?.getJsonObject(0)
+            ?.getLong("m")
+            ?: return false
+        return m == 99L
+    }
 }
