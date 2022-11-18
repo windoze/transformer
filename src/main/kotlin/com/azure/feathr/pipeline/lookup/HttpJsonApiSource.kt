@@ -79,20 +79,25 @@ data class HttpJsonApiSource(
             }
         }
 
-        val resp = if (!requestTemplate.isEmpty) {
-            val payload = requestTemplate.copy()
-            if (keyPath.isNotBlank()) {
-                setValue(payload, keyPath, key)
-            }
-            request.sendJsonObject(payload)
-        } else {
-            request.send()
-        }.await().bodyAsJsonObject()
+        try {
+            val resp = if (!requestTemplate.isEmpty) {
+                val payload = requestTemplate.copy()
+                if (keyPath.isNotBlank()) {
+                    setValue(payload, keyPath, key)
+                }
+                request.sendJsonObject(payload)
+            } else {
+                request.send()
+            }.await().bodyAsJsonObject()
 
-        return fields.map { field ->
-            Value(ColumnType.DYNAMIC, resultPath[field]?.let {
-                getValue(resp, it)
-            })
+            return fields.map { field ->
+                Value(ColumnType.DYNAMIC, resultPath[field]?.let {
+                    getValue(resp, it)
+                })
+            }
+        } catch (e: Throwable) {
+            // TODO: Error handling
+            return List(fields.size) { Value.NULL }
         }
     }
 
