@@ -102,7 +102,7 @@ dot_member
     : ID ('.' ID)*;
 
 number
-    : (FLOAT | DEC | HEX | BIN)
+    : (FLOAT | DEC | HEX | BIN | CONSTANTS)
     ;
 
 str
@@ -111,6 +111,10 @@ str
 
 bool
     : BOOL_LIT
+    ;
+
+CONSTANTS
+    : 'PI' | 'E'
     ;
 
 TYPES

@@ -175,6 +175,12 @@ class PipelineParser {
 
     private fun parseNumber(ctx: NumberContext): ConstantExpression {
         val text = ctx.getChild(0).text
+        if(text=="PI") {
+            return ConstantExpression(Math.PI, ColumnType.DOUBLE)
+        }
+        if(text=="E") {
+            return ConstantExpression(Math.E, ColumnType.DOUBLE)
+        }
         // Try int/long
         try {
             return ConstantExpression(text.toLong(), ColumnType.LONG)

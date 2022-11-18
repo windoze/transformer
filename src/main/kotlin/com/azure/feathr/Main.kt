@@ -16,6 +16,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.core.json.jackson.DatabindCodec
 import io.vertx.core.logging.SLF4JLogDelegateFactory
+import io.vertx.ext.web.client.WebClient
 import io.vertx.kotlin.core.json.Json
 import io.vertx.kotlin.core.json.obj
 import io.vertx.kotlin.coroutines.await
@@ -44,6 +45,17 @@ object Main {
 
     val vertx = Vertx.vertx()!!
 
+    private fun loadFile(path: String): String {
+        return if(path.startsWith("http:") || path.startsWith("https:")) {
+            runBlocking {
+                WebClient.create(vertx).getAbs(path).send().await().bodyAsString()
+            }
+        }
+        else {
+            vertx.fileSystem().readFileBlocking(path).toString()
+        }
+    }
+
     @JvmStatic
     fun main(args: Array<String>) = mainBody {
         ArgParser(args).parseInto(::AppArgs).run {
@@ -61,7 +73,7 @@ object Main {
             val vertx = Main.vertx
             try {
                 if (lookup.isNotBlank()) {
-                    val lookup = vertx.fileSystem().readFileBlocking(lookup).toString()
+                    val lookup = loadFile(lookup)
                     if (lookup.isNotBlank()) {
                         val j = JsonObject(lookup)
                         j.getJsonArray("sources")
@@ -90,7 +102,7 @@ object Main {
                 exitProcess(1)
             }
             try {
-                val conf = vertx.fileSystem().readFileBlocking(pipeline).toString()
+                val conf = loadFile(pipeline)
                 runBlocking {
                     val fp = vertx.deployVerticle(
                         PipelineVerticle::class.java,

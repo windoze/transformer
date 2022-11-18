@@ -5,6 +5,7 @@ import com.azure.feathr.pipeline.ColumnType
 import com.azure.feathr.pipeline.Value
 import com.azure.feathr.pipeline.operators.functions.*
 import com.azure.feathr.pipeline.operators.functions.Function
+import kotlin.math.*
 
 class FunctionCall(private val name: String) : Operator {
     override val arity: Int = -1
@@ -54,6 +55,30 @@ class FunctionCall(private val name: String) : Operator {
             Function.register("case", Case())
             Function.register("bucket", Bucket())
             Function.register("timestamp", Timestamp())
+
+            // Math
+            Function.register("abs", AbsFunction())
+            Function.register("sqrt", UnaryMathFunction(Math::sqrt))
+            Function.register("exp", UnaryMathFunction(Math::exp))
+            Function.register("log", BinaryMathFunction(::log))
+            Function.register("ln", UnaryMathFunction(Math::log))
+            Function.register("log10", UnaryMathFunction(Math::log10))
+            Function.register("log2", UnaryMathFunction { x -> log(x, 2.toDouble()) })
+            Function.register("ceil", UnaryMathFunction(Math::ceil))
+            Function.register("floor", UnaryMathFunction(Math::floor))
+            Function.register("round", UnaryMathFunction(::round))
+            Function.register("sin", UnaryMathFunction(Math::sin))
+            Function.register("cos", UnaryMathFunction(Math::cos))
+            Function.register("tan", UnaryMathFunction(Math::tan))
+            Function.register("asin", UnaryMathFunction(Math::asin))
+            Function.register("acos", UnaryMathFunction(Math::acos))
+            Function.register("atan", UnaryMathFunction(Math::atan))
+            Function.register("sinh", UnaryMathFunction(Math::sinh))
+            Function.register("cosh", UnaryMathFunction(Math::cosh))
+            Function.register("tanh", UnaryMathFunction(Math::tanh))
+            Function.register("asinh", UnaryMathFunction(::asinh))
+            Function.register("acosh", UnaryMathFunction(::acosh))
+            Function.register("atanh", UnaryMathFunction(::atanh))
         }
     }
 }
