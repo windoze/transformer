@@ -17,3 +17,5 @@ class IndexOutOfBound(idx: Int?): TransformerException ("Index $idx is out of bo
 class InvalidReference(name: String): TransformerException("Invalid reference to '$name'")
 
 class IllegalArguments(message: String): TransformerException(message)
+
+class InvalidDateFormatException(format: String, message: Any): TransformerException("$format: $message")

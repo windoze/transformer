@@ -12,6 +12,10 @@ import kotlin.math.min
 
 data class RenameWithType(val origName: String, val newName: String?, val type: ColumnType) {
     constructor(origName: String): this(origName, null, ColumnType.DYNAMIC)
+    override fun toString(): String {
+        val ret = "$origName as ${type.toString().lowercase()}"
+        return if(newName==null) ret else "$newName = $ret"
+    }
 }
 
 class Lookup(

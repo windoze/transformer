@@ -21,7 +21,8 @@ class Timestamp : Function {
             val dt = if (formatter == null)
                 LocalDateTime.parse(str)
             else {
-                LocalDateTime.parse(str, DateTimeFormatter.ofPattern(formatter))
+//                LocalDateTime.parse(str, DateTimeFormatter.ofPattern(formatter))
+                LocalDateTime.parse(str, StrftimeFormatter.toDateTimeFormatter(formatter))
             }.atZone(zone).toInstant()
 
             val timestamp =
