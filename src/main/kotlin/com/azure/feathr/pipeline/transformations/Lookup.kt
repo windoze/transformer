@@ -10,14 +10,18 @@ import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
 import kotlin.math.min
 
+data class RenameWithType(val origName: String, val newName: String?, val type: ColumnType) {
+    constructor(origName: String): this(origName, null, ColumnType.DYNAMIC)
+}
+
 class Lookup(
-    private val valueColumns: List<String>,
+    private val valueColumns: List<RenameWithType>,
     private val keyExpression: Expression,
     private val lookupDataSet: LookupSource,
     private val batchSize: Int = 100,
 ) : Transformation {
     constructor(
-        valueColumns: List<String>,
+        valueColumns: List<RenameWithType>,
         keyExpression: Expression,
         lookupDataSetName: String,
         batchSize: Int = 100
@@ -33,7 +37,7 @@ class Lookup(
         return LookupDataSet(
             input,
             getOutputSchema(input.getColumns()),
-            valueColumns,
+            valueColumns.map { it.origName },
             keyExpression,
             lookupDataSet,
             batchSize
@@ -43,8 +47,8 @@ class Lookup(
     override fun getOutputSchema(inputColumns: List<Column>): List<Column> {
         return inputColumns + valueColumns.map {
             Column(
-                it,
-                ColumnType.DYNAMIC
+                it.newName ?: it.origName,
+                it.type
             )
         }
     }

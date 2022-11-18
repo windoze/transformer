@@ -51,7 +51,7 @@ explode_tran
     ;
 
 lookup_tran
-    : 'lookup' ID (',' ID)* 'from' ID 'on' expr
+    : 'lookup' rename_with_type (',' rename_with_type)* 'from' ID 'on' expr
     ;
 
 take_tran
@@ -64,6 +64,10 @@ sort_dir
 
 nulls_pos
     : 'nulls' ('first' | 'last')
+    ;
+
+rename_with_type
+    : (ID '=')? ID ('as' TYPES)?
     ;
 
 expr

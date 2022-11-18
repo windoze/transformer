@@ -78,7 +78,7 @@ class LookupTest {
                 )
             )
         )
-        val tds = Lookup(listOf("int_col1", "str_col2"), exp, ls).apply { initialize(ds.getColumns()) }.transform(ds)
+        val tds = Lookup(listOf("int_col1", "str_col2").map { RenameWithType(it) }, exp, ls).apply { initialize(ds.getColumns()) }.transform(ds)
 
         // Now tds contains 4 columns: intField1, intField2, int_col1, str_col2, and 5 rows
         val r = runBlocking { tds.fetchAll().await() }

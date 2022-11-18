@@ -56,8 +56,10 @@ class PipelineParser {
             }
 
             is Lookup_tranContext -> {
-                val columns = t.ID().take(t.ID().size - 1).map { it.text }
-                val srcName = t.ID().last().text
+                val columns = t.rename_with_type().map {
+                    parseRenameWithType(it)
+                }
+                val srcName = t.ID().text
                 val expr = parseExpression(t.expr())
                 return Lookup(columns, expr, srcName)
             }
@@ -75,6 +77,14 @@ class PipelineParser {
                 TODO()
             }
         }
+    }
+
+    private fun parseRenameWithType(ctx: Rename_with_typeContext): RenameWithType {
+        val origName = ctx.ID().last().text
+        val newName = if (ctx.ID().size == 2) ctx.ID(0).text else null
+        val typeNode = ctx.TYPES()
+        val type = if (typeNode != null) parseType(ctx.TYPES()) else ColumnType.DYNAMIC
+        return RenameWithType(origName, newName, type)
     }
 
     private fun parseExpression(ctx: ExprContext): Expression {
