@@ -48,7 +48,7 @@ class PipelineParser {
             })
 
             is Project_rename_tranContext -> {
-                return ProjectRename(t.ID().chunked(2).associate { (new, old) -> new.text to old.text })
+                return ProjectRename(t.ID().chunked(2).associate { (new, old) -> old.text to new.text })
             }
 
             is Project_remove_tranContext -> {
