@@ -22,12 +22,13 @@ class FeathrRedisSource(
     private val table: String = ""
 ) : LookupSource {
     private val client: RedisClient by lazy {
+        val host = getSecret(host)
         val proto = if (ssl) "rediss" else "redis"
         val h = if (port == 6379) host else "$host:$port"
         val endpoint = if (password.isBlank()) {
             h
         } else {
-            "$password@$h"
+            "${getSecret(password)}@$h"
         }
         RedisClient.create("$proto://$endpoint")
     }
@@ -134,7 +135,7 @@ class FeathrRedisSource(
     }
 
     private fun constructKey(key: String): String {
-        return "$table$KEY_SEPARATOR$key"
+        return "${getSecret(table)}$KEY_SEPARATOR$key"
     }
 
     companion object {

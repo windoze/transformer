@@ -64,11 +64,11 @@ data class HttpJsonApiSource(
         val request = client.requestAbs(getMethod(), url)
 
         if (keyQueryParam.isNotBlank()) {
-            request.addQueryParam(keyQueryParam, key.toString())
+            request.addQueryParam(keyQueryParam, getSecret(key.toString()))
         }
 
         additionalHeaders.forEach { (h, v) ->
-            request.putHeader(h, v)
+            request.putHeader(h, getSecret(v))
         }
 
         if (keyHeader.isNotBlank()) {

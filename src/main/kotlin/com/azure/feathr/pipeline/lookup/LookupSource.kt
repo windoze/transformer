@@ -53,3 +53,11 @@ object LookupSourceRepo {
         return lookupSources[name]!!
     }
 }
+
+fun getSecret(name: String): String {
+    return Regex("(\\\$\\{([A-Za-z0-9_-]+)})").replace(name) {
+        System.getenv(it.groupValues.last()) ?: ""
+    }.apply {
+        println("$name -> $this")
+    }
+}
