@@ -5,11 +5,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
 import com.azure.feathr.pipeline.Value
+import com.fasterxml.jackson.annotation.JsonIgnore
 import java.util.concurrent.CompletableFuture
 
 interface LookupSource {
     val sourceName: String
 
+    @JsonIgnore
     fun getBatchSize(): Int {
         return 100
     }

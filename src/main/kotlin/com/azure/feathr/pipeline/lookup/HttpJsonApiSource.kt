@@ -3,6 +3,7 @@ package com.azure.feathr.pipeline.lookup
 import com.azure.feathr.Main
 import com.azure.feathr.pipeline.ColumnType
 import com.azure.feathr.pipeline.Value
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.noenv.jsonpath.JsonPath
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonArray
@@ -45,6 +46,7 @@ data class HttpJsonApiSource(
     }
 
     override val sourceName: String
+        @JsonIgnore
         get() = name
 
     override fun get(key: Value, fields: List<String>): CompletableFuture<List<Value?>> {
@@ -56,9 +58,9 @@ data class HttpJsonApiSource(
 
     private suspend fun requestAsync(key: Any, fields: List<String>): List<Value> {
         val url = if (keyUrlTemplate.isNotBlank()) {
-            urlBase + keyUrlTemplate.replace("$", key.toString())
+            getSecret(urlBase) + keyUrlTemplate.replace("$", key.toString())
         } else {
-            urlBase
+            getSecret(urlBase)
         }
 
         val request = client.requestAbs(getMethod(), url)

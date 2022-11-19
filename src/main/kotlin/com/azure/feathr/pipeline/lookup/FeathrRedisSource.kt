@@ -3,6 +3,9 @@ package com.azure.feathr.pipeline.lookup
 import com.azure.feathr.Main
 import com.azure.feathr.pipeline.ColumnType
 import com.azure.feathr.pipeline.Value
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.linkedin.feathr.common.types.protobuf.FeatureValueOuterClass.FeatureValue
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
@@ -13,6 +16,8 @@ import kotlinx.coroutines.future.future
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+@JsonIgnoreProperties(value = ["port"], allowSetters = true)
 class FeathrRedisSource(
     private val name: String = "",
     private val host: String = "",
@@ -21,6 +26,8 @@ class FeathrRedisSource(
     private val password: String = "",
     private val table: String = ""
 ) : LookupSource {
+    @delegate:JsonIgnore
+    @get:JsonIgnore
     private val client: RedisClient by lazy {
         val host = getSecret(host)
         val proto = if (ssl) "rediss" else "redis"
@@ -33,14 +40,18 @@ class FeathrRedisSource(
         RedisClient.create("$proto://$endpoint")
     }
 
+    @delegate:JsonIgnore
+    @get:JsonIgnore
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     private val api by lazy {
         client.connect().coroutines()
     }
 
     override val sourceName: String
+        @JsonIgnore
         get() = name
 
+    @JsonIgnore
     override fun get(key: Value, fields: List<String>): CompletableFuture<List<Value?>> {
         // No key, no value
         val k = key.getString()
