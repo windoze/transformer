@@ -140,7 +140,7 @@ open class WebVerticle(definition: String) : CoroutineVerticle() {
                 try {
                     it.response().endWithRawString(handler(it))
                 } catch (e: VertxWebException) {
-                    it.response().setStatusCode(e.statusCode).setStatusMessage(e.message).end()
+                    it.response().setStatusCode(e.statusCode).send(e.message).await()
                 } catch (e: Throwable) {
                     it.response().internalError(e.message ?: "Internal error")
                 }
@@ -154,7 +154,7 @@ open class WebVerticle(definition: String) : CoroutineVerticle() {
                 try {
                     it.response().endWith(handler(it))
                 } catch (e: VertxWebException) {
-                    it.response().setStatusCode(e.statusCode).setStatusMessage(e.message).end()
+                    it.response().setStatusCode(e.statusCode).send(e.message).await()
                 } catch (e: Throwable) {
                     it.response().internalError(e.message ?: "Internal error")
                 }

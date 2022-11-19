@@ -20,6 +20,7 @@ data class HttpJsonApiSource(
     val urlBase: String = "",
     val method: String = "POST",
     val additionalHeaders: Map<String, String> = mapOf(),
+    val additionalQueryParams: Map<String, String> = mapOf(),
 
     // Key in URL, `$` is the placeholder of the key, this template doesn't include URL base
     val keyUrlTemplate: String = "",
@@ -67,6 +68,10 @@ data class HttpJsonApiSource(
 
         if (keyQueryParam.isNotBlank()) {
             request.addQueryParam(keyQueryParam, getSecret(key.toString()))
+        }
+
+        for((k,v) in additionalQueryParams) {
+            request.addQueryParam(k, getSecret(v))
         }
 
         additionalHeaders.forEach { (h, v) ->

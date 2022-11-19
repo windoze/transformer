@@ -5,6 +5,7 @@ import io.vertx.core.http.HttpServerResponse
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
+import io.vertx.kotlin.coroutines.await
 import net.logstash.logback.argument.StructuredArgument
 
 open class StructuralException(message: String, val args: Array<out StructuredArgument>) : Throwable(message)
@@ -31,24 +32,24 @@ class NotFoundException(message: String = "Not Found", vararg args: StructuredAr
 class InternalErrorException(message: String = "Internal Server Error", vararg args: StructuredArgument) :
     VertxWebException(message, 500, *args)
 
-fun HttpServerResponse.notFound(msg: String = "Not found") {
-    setStatusCode(404).end(msg)
+suspend fun HttpServerResponse.notFound(msg: String = "Not found") {
+    setStatusCode(404).end(msg).await()
 }
 
-fun HttpServerResponse.badRequest(msg: String = "Bad request") {
-    setStatusCode(400).end(msg)
+suspend fun HttpServerResponse.badRequest(msg: String = "Bad request") {
+    setStatusCode(400).end(msg).await()
 }
 
-fun HttpServerResponse.internalError(msg: String = "Internal Server Error") {
-    setStatusCode(500).end(msg)
+suspend fun HttpServerResponse.internalError(msg: String = "Internal Server Error") {
+    setStatusCode(500).end(msg).await()
 }
 
-fun HttpServerResponse.endWithRawString(s: String) {
-    putHeader("content-type", "application/json; charset=utf-8").end(s)
+suspend fun HttpServerResponse.endWithRawString(s: String) {
+    putHeader("content-type", "application/json; charset=utf-8").end(s).await()
 }
 
-fun HttpServerResponse.endWith(o: Any) {
-    putHeader("content-type", "application/json; charset=utf-8").end(Json.encodePrettily(o))
+suspend fun HttpServerResponse.endWith(o: Any) {
+    putHeader("content-type", "application/json; charset=utf-8").end(Json.encodePrettily(o)).await()
 }
 
 inline fun <reified T> RoutingContext.jsonBody(): T = body().asJsonObject().mapTo(T::class.java)
@@ -63,7 +64,7 @@ data class ResponseEntry(
     val pipeline: String,
     val status: String,
     val count: Int = 0,
-    val time: Long = 0,
+    val time: Double = 0.0,
     val data: List<Map<String, Any?>> = listOf(),
 )
 
