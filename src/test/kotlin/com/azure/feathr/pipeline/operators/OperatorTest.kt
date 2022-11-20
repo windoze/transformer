@@ -11,8 +11,8 @@ class OperatorTest {
         assertEquals(
             Plus().apply(
                 listOf(
-                    Value(ColumnType.INT, 10),
-                    Value(ColumnType.INT, 32),
+                    Value(10),
+                    Value(32),
                 )
             ).getInt(), 42
         )
@@ -20,8 +20,8 @@ class OperatorTest {
         assertEquals(
             Minus().apply(
                 listOf(
-                    Value(ColumnType.INT, 72),
-                    Value(ColumnType.LONG, 30.toLong()),
+                    Value(72),
+                    Value(30.toLong()),
                 )
             ).getLong(), 42L
         )
@@ -29,8 +29,8 @@ class OperatorTest {
         assertEquals(
             Multiply().apply(
                 listOf(
-                    Value(ColumnType.FLOAT, 7.toFloat()),
-                    Value(ColumnType.LONG, 6.toLong()),
+                    Value(7.toFloat()),
+                    Value(6.toLong()),
                 )
             ).getFloat(), 42.toFloat()
         )
@@ -38,8 +38,8 @@ class OperatorTest {
         assertEquals(
             Divide().apply(
                 listOf(
-                    Value(ColumnType.INT, 84),
-                    Value(ColumnType.DOUBLE, 2.toDouble()),
+                    Value(84),
+                    Value(2.toDouble()),
                 )
             ).getDouble(), 42.toDouble()
         )
@@ -50,8 +50,8 @@ class OperatorTest {
         assertEquals(
             Plus().apply(
                 listOf(
-                    Value(ColumnType.INT, 10),
-                    Value(ColumnType.LONG, 32),
+                    Value(10),
+                    Value(32),
                 )
             ).getValueType(), ColumnType.LONG
         )

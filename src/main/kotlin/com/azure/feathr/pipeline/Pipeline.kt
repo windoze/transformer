@@ -17,28 +17,18 @@ class Pipeline(val inputSchema: List<Column>, private val transformations: List<
         }
     }
 
-    fun process(input: DataSet): DataSet {
-        // TODO: Validate input schema
-        return transformations.fold(input) { ds, t ->
-            t.transform(ds)
+    fun process(input: DataSet, validate: Boolean): DataSet {
+        val mode = if (validate) ValidationMode.STRICT else ValidationMode.LENIENT
+        val dataset = input.validate(mode)
+        return transformations.fold(dataset) { ds, t ->
+            t.transform(ds).validate(mode)
         }
     }
 
     // The output is still a data set as the single row may explode
     fun processSingle(input: List<Any?>, validate: Boolean): DataSet {
-        val row = if (validate) {
-            validateRow(input)
-        } else {
-            input
-        }
-        return process(EagerDataSet(inputSchema, listOf(row)))
-    }
-
-    private fun validateRow(row: List<Any?>): List<Any?> {
-        if (row.size != inputSchema.size) throw IllegalValue(row)
-        return inputSchema.zip(row).map { (col, v) ->
-            col.type.coerce(v)
-        }
+        val ds = EagerDataSet(inputSchema, listOf(input))
+        return process(ds, validate)
     }
 
     fun dump(): String {

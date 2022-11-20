@@ -28,7 +28,7 @@ class PipelineTest {
 
         val t1 = Where(OperatorExpression(GreaterThan(), listOf(
             GetColumn("intField1"),
-            ConstantExpression(20, ColumnType.INT)
+            ConstantExpression(20)
         )))
 
         val t2 = ProjectRemove(listOf("intField1"))
@@ -41,7 +41,7 @@ class PipelineTest {
         assertEquals(ColumnType.INT, p.outputSchema[0].type)
         assertEquals("intField2", p.outputSchema[0].name)
 
-        val tds = runBlocking{ p.process(ds).fetchAll().await() }
+        val tds = runBlocking{ p.process(ds, true).fetchAll().await() }
         assertEquals(2, tds.size)
         assertEquals(500, tds[0].getColumn("intField2").getInt())
         assertEquals(400, tds[1].getColumn("intField2").getInt())

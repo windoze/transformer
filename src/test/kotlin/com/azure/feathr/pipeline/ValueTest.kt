@@ -7,16 +7,14 @@ class ValueTest {
     @Test
     fun testToStatic() {
         run {
-            val dv = Value(ColumnType.DYNAMIC, 42)
-            val sv = dv.toStatic()
-            assertEquals(sv.getValueType(), ColumnType.INT)
-            assertEquals(sv.getDynamic(), 42)
+            val v = Value(42)
+            assertEquals(v.getValueType(), ColumnType.INT)
+            assertEquals(v.getInt(), 42)
         }
         run {
-            val dv = Value(ColumnType.DYNAMIC, "foo")
-            val sv = dv.toStatic()
-            assertEquals(sv.getValueType(), ColumnType.STRING)
-            assertEquals(sv.getDynamic(), "foo")
+            val v = Value("foo")
+            assertEquals(v.getValueType(), ColumnType.STRING)
+            assertEquals(v.value, "foo")
         }
     }
 }

@@ -18,7 +18,7 @@ fun Row.dump(): String {
 }
 
 fun Value.dump(): String {
-    return "${getValueType()}(${getDynamic().toString()})"
+    return "${getValueType()}(${value.toString()})"
 }
 
 fun List<Column>.dump(): String {

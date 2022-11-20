@@ -29,7 +29,7 @@ class ProjectTest {
                     "longField1", OperatorExpression(
                         Plus(), listOf(
                             GetColumnByIndex(1),
-                            ConstantExpression(10.toLong(), ColumnType.LONG)
+                            ConstantExpression(10.toLong())
                         )
                     )
                 ),

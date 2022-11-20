@@ -11,11 +11,11 @@ class Bucket : Function {
     }
 
     override fun call(arguments: List<Value>): Value {
-        val v = toDouble.call(listOf(arguments[0])).getDouble() ?: return NULL
+        val v = arguments[0].getDouble()
         val boundaries = arguments.subList(1, arguments.size).map {
-            toDouble.call(listOf(it)).getDouble()
+            it.getDouble()
         }
-        val idx = boundaries.indexOfFirst { (it != null) && v < it }
-        return Value(ColumnType.INT, if (idx < 0) boundaries.size else idx)
+        val idx = boundaries.indexOfFirst { v < it }
+        return Value(if (idx < 0) boundaries.size else idx)
     }
 }

@@ -52,13 +52,27 @@ class PipelineVerticle : CoroutineVerticle() {
                 val start = Instant.now().let {
                     it.epochSecond * 1000_000 + it.nano / 1000
                 }
+                val errors: MutableList<ErrorRecord> = mutableListOf()
                 val data = pipelines[req.pipeline]?.let { p ->
                     val inputRow = p.inputSchema.map { col ->
                         req.data[col.name]
                     }
-                    p.processSingle(inputRow, req.validate).fetchAll().await()?.map { row ->
+                    p.processSingle(inputRow, req.validate).fetchAll().await()?.mapIndexed() { idx, row ->
                         p.outputSchema.zip(row.evaluate()).associate { (col, value) ->
-                            col.name to value?.value
+                            col.name to value?.value?.let {
+                                if (it is TransformerException) {
+                                    if (req.error) errors.add(
+                                        ErrorRecord(
+                                            idx,
+                                            col.name,
+                                            it.toString()
+                                        )
+                                    )
+                                    null
+                                } else {
+                                    it
+                                }
+                            }
                         }
                     } ?: listOf()
                 }
@@ -68,7 +82,7 @@ class PipelineVerticle : CoroutineVerticle() {
                 if (data == null) {
                     ResponseEntry(req.pipeline, "Pipeline not found")
                 } else {
-                    ResponseEntry(req.pipeline, "OK", data.size, (stop - start).toDouble() / 1000.0, data)
+                    ResponseEntry(req.pipeline, "OK", data.size, (stop - start).toDouble() / 1000.0, data, errors)
                 }
             }
             return Response(entries)
@@ -99,7 +113,7 @@ class PipelineVerticle : CoroutineVerticle() {
                                 Plus(),
                                 listOf(
                                     GetColumnByIndex(0),
-                                    ConstantExpression(42, ColumnType.INT)
+                                    ConstantExpression(42)
                                 )
                             )
                         )

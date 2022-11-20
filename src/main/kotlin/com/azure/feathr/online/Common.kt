@@ -1,6 +1,9 @@
 package com.azure.feathr.online
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.databind.annotation.JsonNaming
 import io.vertx.core.http.HttpServerResponse
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
@@ -56,16 +59,31 @@ inline fun <reified T> RoutingContext.jsonBody(): T = body().asJsonObject().mapT
 
 inline fun <reified T> JsonObject.mapAs(): T = mapTo(T::class.java)
 
-data class RequestEntry(val pipeline: String = "", val data: Map<String, Any?> = mapOf(), val validate: Boolean = false)
+enum class ErrorReportingMode {
+    OFF,
+    ON,
+//    DEBUG,
+}
+
+data class RequestEntry(
+    val pipeline: String = "",
+    val data: Map<String, Any?> = mapOf(),
+    val validate: Boolean = true,
+    val error: Boolean = true
+)
+
 data class Request(val requests: List<RequestEntry> = listOf())
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+data class ErrorRecord(val row: Int, val column: String, val message: String)
+
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class ResponseEntry(
     val pipeline: String,
     val status: String,
     val count: Int = 0,
     val time: Double = 0.0,
     val data: List<Map<String, Any?>> = listOf(),
+    val errors: List<ErrorRecord> = listOf(),
 )
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)

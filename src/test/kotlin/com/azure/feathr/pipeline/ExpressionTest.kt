@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 class ExpressionTest {
     @Test
     fun testEvalConst() {
-        val c = ConstantExpression(10, ColumnType.INT)
+        val c = ConstantExpression(10)
         val r = EagerRow(listOf(), listOf())
         assertEquals(c.evaluate(r).getInt(), 10)
     }

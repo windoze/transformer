@@ -7,7 +7,7 @@ class IsNotNull : Operator {
     override val arity: Int = 1
 
     override fun apply(arguments: List<Value>): Value {
-        return Value(ColumnType.BOOL, arguments[0].getDynamic() != null)
+        return Value(!arguments[0].isNull())
     }
 
     override fun getResultType(argumentTypes: List<ColumnType>): ColumnType {

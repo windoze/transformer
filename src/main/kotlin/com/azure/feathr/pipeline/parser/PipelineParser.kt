@@ -73,6 +73,10 @@ class PipelineParser {
                 return Top(expr, asc, n)
             }
 
+            is Ignore_error_tranContext -> {
+                return IgnoreError()
+            }
+
             else -> {
                 TODO()
             }
@@ -148,7 +152,7 @@ class PipelineParser {
     private fun parseDotMember(ctx: Dot_memberContext): Expression {
         val init: Expression = GetColumn(ctx.ID().first().text)
         return ctx.ID().subList(1, ctx.ID().size).fold(init) { exp, id ->
-            OperatorExpression(MapIndex(), listOf(exp, ConstantExpression(id.text, ColumnType.STRING)))
+            OperatorExpression(MapIndex(), listOf(exp, ConstantExpression(id.text)))
         }
     }
 
@@ -175,21 +179,21 @@ class PipelineParser {
 
     private fun parseNumber(ctx: NumberContext): ConstantExpression {
         val text = ctx.getChild(0).text
-        if(text=="PI") {
-            return ConstantExpression(Math.PI, ColumnType.DOUBLE)
+        if (text == "PI") {
+            return ConstantExpression(Math.PI)
         }
-        if(text=="E") {
-            return ConstantExpression(Math.E, ColumnType.DOUBLE)
+        if (text == "E") {
+            return ConstantExpression(Math.E)
         }
         // Try int/long
         try {
-            return ConstantExpression(text.toLong(), ColumnType.LONG)
+            return ConstantExpression(text.toLong())
         } catch (e: java.lang.NumberFormatException) {
             // pass
         }
         // Try float/double
         try {
-            return ConstantExpression(text.toDouble(), ColumnType.DOUBLE)
+            return ConstantExpression(text.toDouble())
         } catch (e: java.lang.NumberFormatException) {
             // pass
         }
@@ -206,12 +210,12 @@ class PipelineParser {
             .replace("\\t", "\t")
             .replace("\\\"", "\"")
             .replace("\\\\", "\\")
-        return ConstantExpression(s, ColumnType.STRING)
+        return ConstantExpression(s)
     }
 
     private fun parseBool(ctx: BoolContext): ConstantExpression {
         val rawText = ctx.getChild(0).text
-        return ConstantExpression(rawText == "true", ColumnType.BOOL)
+        return ConstantExpression(rawText == "true")
     }
 
     private fun parseInteger(ctx: NumberContext): Long {

@@ -12,7 +12,7 @@ class ArrayIndex : Operator {
         assert(arguments.size == arity)
         val idx = arguments[1].getInt() ?: throw IllegalValue(null)
         val v =  (arguments[0].getArray() ?: throw IllegalValue(null))[idx] ?: throw IndexOutOfBound(idx)
-        return Value(ColumnType.DYNAMIC, v)
+        return Value(v)
     }
 
     override fun getResultType(argumentTypes: List<ColumnType>): ColumnType {

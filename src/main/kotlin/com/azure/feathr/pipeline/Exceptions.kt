@@ -1,5 +1,9 @@
 package com.azure.feathr.pipeline
 
+open class TransformExternalException(message: String): Exception(message)
+
+class HttpError(statusCode: Int, message: String): TransformExternalException("HTTP Error: $statusCode $message")
+
 open class TransformerException(message: String) : Exception(message)
 
 class TypeMismatch(message: String) : TransformerException(message)
@@ -19,3 +23,7 @@ class InvalidReference(name: String): TransformerException("Invalid reference to
 class IllegalArguments(message: String): TransformerException(message)
 
 class InvalidDateFormatException(format: String, message: Any): TransformerException("$format: $message")
+
+class LookupSourceError(private val src: Throwable) : TransformerException("$src")
+
+class UnsupportedFeatureType(message: String): TransformerException(message)

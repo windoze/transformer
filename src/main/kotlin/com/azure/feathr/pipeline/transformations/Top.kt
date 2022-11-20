@@ -90,7 +90,7 @@ class Top(private val criteria: Expression, private val ascending: Boolean, priv
             // TODO: Really use heap to reduce memory footprint
             if (cursor < 0) {
                 sortedDataSet = input.fetchAll().await()
-                    .map { it to criteria.evaluate(it).getDynamic() }
+                    .map { it to criteria.evaluate(it).value }
                     .sortedWith(
                         CoercedComparator(
                             criteria.getResultType(input.getColumns().map { it.type }),

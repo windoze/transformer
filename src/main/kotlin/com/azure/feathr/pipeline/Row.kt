@@ -21,12 +21,12 @@ interface Row {
 }
 
 // An already computed composited value
-class EagerRow(private val columns: List<Column>, val values: List<Any?>) : Row {
+class EagerRow(private val columns: List<Column>, private val values: List<Any?>) : Row {
     override fun getColumns(): List<Column> {
         return columns
     }
 
     override fun getColumn(index: Int): Value {
-        return Value(columns[index].type, values[index])
+        return Value(values[index])
     }
 }

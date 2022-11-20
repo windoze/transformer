@@ -7,10 +7,8 @@ class And : Operator {
     override val arity: Int = 2
 
     override fun apply(arguments: List<Value>): Value {
-        val ret =
-            (!(Not().apply(listOf(arguments[0])).getBool() ?: true)) && (!(Not().apply(listOf(arguments[1])).getBool()
-                ?: true))
-        return Value(ColumnType.BOOL, ret)
+        val ret = arguments[0].getBool() && arguments[1].getBool()
+        return Value(ret)
     }
 
     override fun getResultType(argumentTypes: List<ColumnType>): ColumnType {

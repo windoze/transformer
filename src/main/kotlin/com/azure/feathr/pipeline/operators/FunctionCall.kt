@@ -13,7 +13,7 @@ class FunctionCall(private val name: String) : Operator {
     private var function: Function? = null
 
     override fun apply(arguments: List<Value>): Value {
-        return function?.call(arguments) ?: Value(ColumnType.DYNAMIC, null)
+        return function?.call(arguments) ?: Value.NULL
     }
 
     override fun getResultType(argumentTypes: List<ColumnType>): ColumnType {

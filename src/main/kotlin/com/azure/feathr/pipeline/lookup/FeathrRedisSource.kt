@@ -1,8 +1,7 @@
 package com.azure.feathr.pipeline.lookup
 
 import com.azure.feathr.Main
-import com.azure.feathr.pipeline.ColumnType
-import com.azure.feathr.pipeline.Value
+import com.azure.feathr.pipeline.*
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
@@ -55,8 +54,8 @@ class FeathrRedisSource(
     override fun get(key: Value, fields: List<String>): CompletableFuture<List<Value?>> {
         // No key, no value
         val k = key.getString()
-        if (k.isNullOrBlank())
-            return CompletableFuture.completedFuture(List(fields.size) { Value(ColumnType.DYNAMIC, null) })
+        if (k.isBlank())
+            return CompletableFuture.completedFuture(List(fields.size) { Value(null) })
         return CoroutineScope(Main.vertx.dispatcher()).future {
             getAsync(k, fields)
         }
@@ -65,11 +64,17 @@ class FeathrRedisSource(
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     private suspend fun getAsync(key: String, fields: List<String>): List<Value?> {
         val ret: MutableList<String> = mutableListOf()
-        api.hmget(constructKey(key), *fields.toTypedArray()).collect {
-            ret.add(it.value)
-        }
+        return try {
+            api.hmget(constructKey(key), *fields.toTypedArray()).collect {
+                ret.add(it.value)
+            }
 
-        return parseResponse(ret)
+            parseResponse(ret)
+        } catch (e: TransformerException) {
+            List(fields.size) { Value(e) }
+        } catch (e: Throwable) {
+            List(fields.size) { Value(LookupSourceError(e)) }
+        }
     }
 
     private fun parseResponse(resp: List<String>): List<Value?> {
@@ -81,68 +86,67 @@ class FeathrRedisSource(
 
     private fun featureValueToValue(fv: FeatureValue): Value {
         if (fv.hasBooleanValue()) {
-            return Value(ColumnType.BOOL, fv.booleanValue)
+            return Value(fv.booleanValue)
         }
         if (fv.hasIntValue()) {
-            return Value(ColumnType.INT, fv.intValue)
+            return Value(fv.intValue)
         }
         if (fv.hasLongValue()) {
-            return Value(ColumnType.LONG, fv.longValue)
+            return Value(fv.longValue)
         }
         if (fv.hasFloatValue()) {
-            return Value(ColumnType.FLOAT, fv.floatValue)
+            return Value(fv.floatValue)
         }
         if (fv.hasDoubleValue()) {
-            return Value(ColumnType.DOUBLE, fv.doubleValue)
+            return Value(fv.doubleValue)
         }
         if (fv.hasStringValue()) {
-            return Value(ColumnType.STRING, fv.stringValue)
+            return Value(fv.stringValue)
         }
         if (fv.hasBooleanArray()) {
-            return Value(ColumnType.ARRAY, fv.booleanArray.booleansList.toList())
+            return Value(fv.booleanArray.booleansList.toList())
         }
         if (fv.hasByteArray()) {
             // ByteArray is array of ByteString, or byte sequence
             // So logically it's an array of array of bytes
             return Value(
-                ColumnType.ARRAY,
                 fv.byteArray.bytesList.map { it.map { byte -> byte.toInt() }.toList() }.toList()
             )
         }
         if (fv.hasIntArray()) {
-            return Value(ColumnType.ARRAY, fv.intArray.integersList.toList())
+            return Value(fv.intArray.integersList.toList())
         }
         if (fv.hasLongArray()) {
-            return Value(ColumnType.ARRAY, fv.longArray.longsList.toList())
+            return Value(fv.longArray.longsList.toList())
         }
         if (fv.hasFloatArray()) {
-            return Value(ColumnType.ARRAY, fv.floatArray.floatsList.toList())
+            return Value(fv.floatArray.floatsList.toList())
         }
         if (fv.hasDoubleArray()) {
-            return Value(ColumnType.ARRAY, fv.doubleArray.doublesList.toList())
+            return Value(fv.doubleArray.doublesList.toList())
         }
         if (fv.hasStringArray()) {
-            return Value(ColumnType.ARRAY, fv.stringArray.stringsList.toList())
+            return Value(fv.stringArray.stringsList.toList())
         }
         if (fv.hasSparseBoolArray()) {
-            return Value(ColumnType.ARRAY, fv.sparseBoolArray.valueBooleansList.toList())
+            return Value(fv.sparseBoolArray.valueBooleansList.toList())
         }
         if (fv.hasSparseIntegerArray()) {
-            return Value(ColumnType.ARRAY, fv.sparseIntegerArray.valueIntegersList.toList())
+            return Value(fv.sparseIntegerArray.valueIntegersList.toList())
         }
         if (fv.hasSparseLongArray()) {
-            return Value(ColumnType.ARRAY, fv.sparseLongArray.valueLongsList.toList())
+            return Value(fv.sparseLongArray.valueLongsList.toList())
         }
         if (fv.hasSparseFloatArray()) {
-            return Value(ColumnType.ARRAY, fv.sparseFloatArray.valueFloatsList.toList())
+            return Value(fv.sparseFloatArray.valueFloatsList.toList())
         }
         if (fv.hasSparseDoubleArray()) {
-            return Value(ColumnType.ARRAY, fv.sparseDoubleArray.valueDoublesList.toList())
+            return Value(fv.sparseDoubleArray.valueDoublesList.toList())
         }
         if (fv.hasSparseStringArray()) {
-            return Value(ColumnType.ARRAY, fv.sparseStringArray.valueStringsList.toList())
+            return Value(fv.sparseStringArray.valueStringsList.toList())
         }
-        TODO("Unsupported feature type")
+        throw UnsupportedFeatureType("Unsupported feature type")
     }
 
     private fun constructKey(key: String): String {

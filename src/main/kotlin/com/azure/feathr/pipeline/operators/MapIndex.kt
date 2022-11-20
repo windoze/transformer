@@ -10,9 +10,9 @@ class MapIndex : Operator {
 
     override fun apply(arguments: List<Value>): Value {
         assert(arguments.size == arity)
-        val key = arguments[1].getString() ?: throw IllegalValue(null)
-        val v = (arguments[0].getObject() ?: throw IllegalValue(null))[key] ?: throw KeyNotFound(key)
-        return Value(ColumnType.DYNAMIC, v)
+        val key = arguments[1].getString()
+        val v = (arguments[0].getObject())[key] ?: throw KeyNotFound(key)
+        return Value(v)
     }
 
     override fun getResultType(argumentTypes: List<ColumnType>): ColumnType {

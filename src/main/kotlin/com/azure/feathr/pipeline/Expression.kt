@@ -50,18 +50,19 @@ class GetColumnByIndex(private val index: Int) : Expression {
     }
 }
 
-class ConstantExpression(private val constant: Any?, private val type: ColumnType) : Expression {
+class ConstantExpression(constant: Any?) : Expression {
+    private val value: Value = Value(constant)
     override fun getResultType(columnTypes: List<ColumnType>): ColumnType {
-        return type
+        return value.getValueType()
     }
 
     override fun evaluate(input: Row): Value {
-        return Value(type, constant)
+        return value
     }
 
     override fun dump(): String {
-        if (constant is String) return "\"$constant\""     // TODO: Escape
-        return constant.toString()
+        if (value.getValueType() == ColumnType.STRING) return "\"${value.getString()}\""     // TODO: Escape
+        return value.value.toString()
     }
 }
 
@@ -75,10 +76,13 @@ class OperatorExpression(private val op: Operator, private val arguments: List<E
     override fun evaluate(input: Row): Value {
         return try {
             op.apply(arguments.map {
-                it.evaluate(input)
+                val arg = it.evaluate(input)
+                // Shortcut on error
+                if (arg.isError()) return arg
+                arg
             })
-        } catch (e: Throwable) {
-            Value(ColumnType.DYNAMIC, null)
+        } catch (e: TransformerException) {
+            Value(e)
         }
     }
 

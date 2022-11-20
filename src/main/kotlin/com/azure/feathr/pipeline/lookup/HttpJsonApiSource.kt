@@ -1,7 +1,10 @@
 package com.azure.feathr.pipeline.lookup
 
 import com.azure.feathr.Main
+import com.azure.feathr.online.VertxWebException
 import com.azure.feathr.pipeline.ColumnType
+import com.azure.feathr.pipeline.HttpError
+import com.azure.feathr.pipeline.LookupSourceError
 import com.azure.feathr.pipeline.Value
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.noenv.jsonpath.JsonPath
@@ -51,8 +54,8 @@ data class HttpJsonApiSource(
         get() = name
 
     override fun get(key: Value, fields: List<String>): CompletableFuture<List<Value?>> {
-        val k = key.getDynamic() ?: return CompletableFuture.completedFuture(List(fields.size) {
-            Value(ColumnType.DYNAMIC, null)
+        val k = key.value ?: return CompletableFuture.completedFuture(List(fields.size) {
+            Value(null)
         })
         return CoroutineScope(Main.vertx.dispatcher()).future { requestAsync(k, fields) }
     }
@@ -67,10 +70,10 @@ data class HttpJsonApiSource(
         val request = client.requestAbs(getMethod(), url)
 
         if (keyQueryParam.isNotBlank()) {
-            request.addQueryParam(keyQueryParam, getSecret(key.toString()))
+            request.addQueryParam(keyQueryParam, key.toString())
         }
 
-        for((k,v) in additionalQueryParams) {
+        for ((k, v) in additionalQueryParams) {
             request.addQueryParam(k, getSecret(v))
         }
 
@@ -95,16 +98,19 @@ data class HttpJsonApiSource(
                 request.sendJsonObject(payload)
             } else {
                 request.send()
-            }.await().bodyAsJsonObject()
+            }.await().apply {
+                if (statusCode() >= 400) {
+                    throw HttpError(statusCode(), bodyAsString())
+                }
+            }.bodyAsJsonObject()
 
             return fields.map { field ->
-                Value(ColumnType.DYNAMIC, resultPath[field]?.let {
+                Value(resultPath[field]?.let {
                     getValue(resp, it)
                 })
             }
         } catch (e: Throwable) {
-            // TODO: Error handling
-            return List(fields.size) { Value.NULL }
+            return List(fields.size) { Value(LookupSourceError(e)) }
         }
     }
 

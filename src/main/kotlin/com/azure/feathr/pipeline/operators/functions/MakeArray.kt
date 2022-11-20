@@ -9,6 +9,6 @@ class MakeArray : Function {
     }
 
     override fun call(arguments: List<Value>): Value {
-        return Value(ColumnType.ARRAY, arguments.map { it.getDynamic() })
+        return Value(arguments.map { it.value })
     }
 }

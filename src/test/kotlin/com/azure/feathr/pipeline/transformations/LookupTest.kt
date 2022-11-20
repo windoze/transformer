@@ -16,16 +16,16 @@ class LookupTest {
     class TestLookupSource : LookupSource {
         private val columns: Map<String, Int> = mapOf("int_col1" to 0, "str_col2" to 1)
         private val store: Map<String, List<Value>> = mapOf(
-            "k1" to listOf(Value(ColumnType.INT, 100), Value(ColumnType.STRING, "str_value1")),
-            "k2" to listOf(Value(ColumnType.INT, 200), Value(ColumnType.STRING, "str_value2")),
-            "k3" to listOf(Value(ColumnType.INT, 300), Value(ColumnType.STRING, "str_value3")),
-            "k4" to listOf(Value(ColumnType.INT, 400), Value(ColumnType.STRING, "str_value4")),
+            "k1" to listOf(Value(100), Value("str_value1")),
+            "k2" to listOf(Value(200), Value("str_value2")),
+            "k3" to listOf(Value(300), Value("str_value3")),
+            "k4" to listOf(Value(400), Value("str_value4")),
         )
         override val sourceName: String
             get() = "test_lookup_source"
 
         override fun get(key: Value, fields: List<String>): CompletableFuture<List<Value?>> {
-            val v = store[key.getString() ?: ""]
+            val v = store[key.getString()]
             val ret = fields.map {
                 columns[it]?.let { idx ->
                     v?.get(idx)
@@ -60,7 +60,7 @@ class LookupTest {
         // Lookup key: `"k" + to_string((intField2 - intField1)/90)`
         val exp = OperatorExpression(
             Plus(), listOf(
-                ConstantExpression("k", ColumnType.STRING),
+                ConstantExpression("k"),
                 OperatorExpression(
                     FunctionCall("to_string"), listOf(
                         OperatorExpression(
@@ -71,7 +71,7 @@ class LookupTest {
                                         GetColumn("intField1")
                                     )
                                 ),
-                                ConstantExpression(90, ColumnType.INT)
+                                ConstantExpression(90)
                             )
                         )
                     )
@@ -87,13 +87,13 @@ class LookupTest {
         assertEquals(200, r[1].getColumn(2).getInt())
         assertEquals(300, r[2].getColumn(2).getInt())
         assertEquals(400, r[3].getColumn(2).getInt())
-        assertEquals(null, r[4].getColumn(2).getInt())  // It's null because the key is not found
+        assertEquals(null, r[4].getColumn(2).value)  // It's null because the key is not found
 
         assertEquals("str_value1", r[0].getColumn(3).getString())
         assertEquals("str_value2", r[1].getColumn(3).getString())
         assertEquals("str_value3", r[2].getColumn(3).getString())
         assertEquals("str_value4", r[3].getColumn(3).getString())
-        assertEquals(null, r[4].getColumn(3).getString())
+        assertEquals(null, r[4].getColumn(3).value)
     }
 
     @Test

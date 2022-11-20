@@ -54,7 +54,7 @@ class Explode(private val columnName: String, private val explodedType: ColumnTy
                 val row = r.evaluate()
                 val array = row[columnIdx]?.getArray() ?: listOf()
                 array.map {
-                    val newRow = row.map { it?.getDynamic() }.toMutableList()
+                    val newRow = row.map { it?.value }.toMutableList()
                     newRow[columnIdx] = it
                     EagerRow(explodedColumns, newRow)
                 }

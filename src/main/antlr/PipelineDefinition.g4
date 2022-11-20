@@ -25,6 +25,7 @@ transformation
     | explode_tran
     | lookup_tran
     | take_tran
+    | ignore_error_tran
     ;
 
 where_tran
@@ -56,6 +57,10 @@ lookup_tran
 
 take_tran
     : 'take' number
+    ;
+
+ignore_error_tran
+    : 'ignore-error'
     ;
 
 sort_dir

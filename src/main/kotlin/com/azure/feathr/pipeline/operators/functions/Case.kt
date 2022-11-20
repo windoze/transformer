@@ -7,12 +7,12 @@ class Case : Function {
     override fun call(arguments: List<Value>): Value {
         arguments.chunked(2).forEach { case ->
             if (case.size == 2) {
-                if (case[0].getBool() == true) return@call case[1]
+                if (case[0].getBool()) return@call case[1]
             } else {
                 return@call case[0]
             }
         }
 
-        return Value(ColumnType.DYNAMIC, null)
+        return Value(null)
     }
 }

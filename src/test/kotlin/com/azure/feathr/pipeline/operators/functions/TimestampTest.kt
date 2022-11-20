@@ -10,17 +10,17 @@ class TimestampTest {
     fun testParse() {
         // 2020-4-1 00:44:02 UTC
         val tsUtc = Timestamp().call(listOf(
-            Value(ColumnType.STRING, "2020-04-01 00:44:02"),
-            Value(ColumnType.STRING, "uuuu-MM-dd kk:mm:ss"),
+            Value("2020-04-01 00:44:02"),
+            Value("%Y-%m-%d %H:%M:%S"),
         ))
-        assertEquals(1585701842, tsUtc.getDouble()!!.toLong())
+        assertEquals(1585701842, tsUtc.getLong())
 
         // Same time, but in GMT+8
         val tsCst = Timestamp().call(listOf(
-            Value(ColumnType.STRING, "2020-04-01 08:44:02"),
-            Value(ColumnType.STRING, "uuuu-MM-dd kk:mm:ss"),
-            Value(ColumnType.STRING, "Asia/Shanghai"),
+            Value("2020-04-01 08:44:02"),
+            Value("%Y-%m-%d %H:%M:%S"),
+            Value("Asia/Shanghai"),
         ))
-        assertEquals(1585701842, tsCst.getDouble()!!.toLong())
+        assertEquals(1585701842, tsCst.getLong())
     }
 }
