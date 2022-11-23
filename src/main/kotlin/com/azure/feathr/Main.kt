@@ -7,6 +7,7 @@ import com.azure.feathr.pipeline.lookup.LookupSource
 import com.azure.feathr.pipeline.lookup.LookupSourceRepo
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
+import com.fasterxml.jackson.databind.MapperFeature
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
 import com.xenomachina.argparser.mainBody

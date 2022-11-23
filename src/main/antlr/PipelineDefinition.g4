@@ -22,6 +22,7 @@ transformation
     | project_tran
     | project_rename_tran
     | project_remove_tran
+    | project_keep_tran
     | explode_tran
     | lookup_tran
     | take_tran
@@ -45,6 +46,10 @@ project_rename_tran
 
 project_remove_tran
     : 'project-remove' ID (',' ID)*
+    ;
+
+project_keep_tran
+    : 'project-keep' ID (',' ID)*
     ;
 
 explode_tran

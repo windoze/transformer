@@ -1,9 +1,6 @@
 package com.azure.feathr.online
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
-import com.fasterxml.jackson.databind.annotation.JsonNaming
 import io.vertx.core.http.HttpServerResponse
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
@@ -60,29 +57,80 @@ inline fun <reified T> RoutingContext.jsonBody(): T = body().asJsonObject().mapT
 inline fun <reified T> JsonObject.mapAs(): T = mapTo(T::class.java)
 
 enum class ErrorReportingMode {
+    /**
+     * Silently skip all rows contain errors without reporting
+     */
+    SKIP,
+
+    /**
+     * Silently convert all errors to null without reporting
+     */
     OFF,
+
+    /**
+     * Convert all errors to null, and collect them into the `errors` field in the response object
+     */
     ON,
-//    DEBUG,
+
+    /**
+     * Same as above, also collect stack traces of each error, for debugging purpose only
+     */
+    DEBUG,
 }
 
 data class RequestEntry(
+    /**
+     * Pipeline name
+     */
     val pipeline: String = "",
+
+    /**
+     * Input data for the pipeline
+     */
     val data: Map<String, Any?> = mapOf(),
+
+    /**
+     * True to check the type of each field, turn them into error if check fails
+     * False to convert the field to required type, turn into error if the conversion fails
+     */
     val validate: Boolean = true,
-    val error: Boolean = true
+
+    /**
+     * Error reporting mode
+     */
+    val error: ErrorReportingMode = ErrorReportingMode.ON
 )
 
 data class Request(val requests: List<RequestEntry> = listOf())
 
-data class ErrorRecord(val row: Int, val column: String, val message: String)
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+data class ErrorRecord(val row: Int, val column: String, val message: String, val trace: String = "")
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 data class ResponseEntry(
+    /**
+     * Requested pipeline name
+     */
     val pipeline: String,
+    /**
+     * Status of this request, 'OK' if the request has been processed successfully, or other value if failed
+     */
     val status: String,
+    /**
+     * Count of the rows in the output data set
+     */
     val count: Int = 0,
+    /**
+     * Time to process this request, it doesn't contain the time to receive the request and send the response from/to the client
+     */
     val time: Double = 0.0,
+    /**
+     * Result data set, may contain multiple rows, each row is a map of "field_name" to "field_value"
+     */
     val data: List<Map<String, Any?>> = listOf(),
+    /**
+     * Collected errors in the result data et, this field may be omitted if there is no error
+     */
     val errors: List<ErrorRecord> = listOf(),
 )
 

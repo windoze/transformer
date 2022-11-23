@@ -55,6 +55,10 @@ class PipelineParser {
                 return ProjectRemove(t.ID().map { it.text })
             }
 
+            is Project_keep_tranContext -> {
+                return ProjectKeep(t.ID().map { it.text })
+            }
+
             is Lookup_tranContext -> {
                 val columns = t.rename_with_type().map {
                     parseRenameWithType(it)
