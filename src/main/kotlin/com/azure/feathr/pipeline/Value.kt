@@ -1,5 +1,9 @@
 package com.azure.feathr.pipeline
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+
 /**
  * Value class
  */
@@ -20,6 +24,7 @@ data class Value(val value: Any?) {
             is String -> ColumnType.STRING
             is List<*> -> ColumnType.ARRAY
             is Map<*, *> -> ColumnType.OBJECT
+            is LocalDateTime -> ColumnType.DATETIME
             is TransformerException -> ColumnType.ERROR
             else -> throw IllegalValue(value)
         }
@@ -73,6 +78,11 @@ data class Value(val value: Any?) {
         return value as? List<Any?> ?: throw IllegalValue(value)
     }
 
+    fun getDateTime(): LocalDateTime {
+        if(value is String) parseDateTime(value)
+        return value as? LocalDateTime ?: throw IllegalValue(value)
+    }
+
     fun getError(): TransformerException {
         return value as? TransformerException ?: throw IllegalValue(value)
     }
@@ -84,5 +94,20 @@ data class Value(val value: Any?) {
 
     companion object {
         val NULL = Value(null)
+
+        val DEFAULT_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd")!!
+        val DEFAULT_DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")!!
+
+        fun parseDateTime(s: String): LocalDateTime {
+            try {
+                return LocalDateTime.from(DEFAULT_DATETIME_FORMAT.parse(s))
+            } catch (e: DateTimeParseException) {
+                try {
+                    return LocalDateTime.from(DEFAULT_DATE_FORMAT.parse(s))
+                } catch (e: DateTimeParseException) {
+                    throw IllegalValue(s)
+                }
+            }
+        }
     }
 }

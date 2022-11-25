@@ -1,7 +1,13 @@
 package com.azure.feathr.pipeline
 
+import com.azure.feathr.pipeline.Value.Companion.DEFAULT_DATETIME_FORMAT
+import java.time.DateTimeException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+
 enum class ColumnType {
-    NULL, BOOL, INT, LONG, FLOAT, DOUBLE, STRING, ARRAY, OBJECT, DYNAMIC, ERROR;
+    NULL, BOOL, INT, LONG, FLOAT, DOUBLE, STRING, ARRAY, OBJECT, DATETIME, DYNAMIC, ERROR;
 
     fun coerce(v: Any?): Any? {
         if (v == null) return null
@@ -40,9 +46,28 @@ enum class ColumnType {
                 else -> throw IllegalValue(v)
             }
 
-            STRING -> if (v is String) v else throw IllegalValue(v)
+            STRING -> when(v) {
+                is String -> v
+                is LocalDateTime -> try {
+                    v.format(DEFAULT_DATETIME_FORMAT)
+                } catch (e: DateTimeException) {
+                    throw IllegalValue(v)
+                }
+                else -> throw IllegalValue(v)
+            }
             ARRAY -> if (v is List<*>) v else throw IllegalValue(v)
             OBJECT -> if (v is Map<*, *>) v else throw IllegalValue(v)
+
+            DATETIME -> when(v) {
+                is LocalDateTime -> v
+                is String -> try {
+                    DEFAULT_DATETIME_FORMAT.parse(v)
+                } catch (e: DateTimeParseException) {
+                    throw IllegalValue(v)
+                }
+                else -> throw IllegalValue(v)
+            }
+
             ERROR -> throw IllegalValue(v)
             DYNAMIC -> v
             NULL -> throw IllegalType(this)
@@ -112,6 +137,11 @@ enum class ColumnType {
                 is Float -> v.toString()
                 is Double -> v.toString()
                 is String -> v
+                is LocalDateTime -> try {
+                    v.format(DEFAULT_DATETIME_FORMAT)
+                } catch (e: DateTimeException) {
+                    throw IllegalValue(v)
+                }
                 else -> throw IllegalValue(v)
             }
 
@@ -122,6 +152,16 @@ enum class ColumnType {
 
             OBJECT -> when (v) {
                 is Map<*, *> -> v
+                else -> throw IllegalValue(v)
+            }
+
+            DATETIME -> when(v) {
+                is LocalDateTime -> v
+                is String -> try {
+                    Value.parseDateTime(v)
+                } catch (e: DateTimeParseException) {
+                    throw IllegalValue(v)
+                }
                 else -> throw IllegalValue(v)
             }
 
