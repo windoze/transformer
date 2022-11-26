@@ -7,7 +7,6 @@ class Divide : Operator {
     override fun apply(arguments: List<Value>): Value {
         when (arguments[0].getValueType()) {
             ColumnType.INT -> {
-                val arg1: Int = arguments[0].getInt() ?: 0
                 when (arguments[1].getValueType()) {
                     ColumnType.INT -> {
                         // INT / INT
@@ -34,7 +33,6 @@ class Divide : Operator {
             }
 
             ColumnType.LONG -> {
-                val arg1: Long = arguments[0].getLong() ?: 0
                 when (arguments[1].getValueType()) {
                     ColumnType.INT -> {
                         // LONG / INT
@@ -61,7 +59,6 @@ class Divide : Operator {
             }
 
             ColumnType.FLOAT -> {
-                val arg1: Float = arguments[0].getFloat() ?: 0f
                 when (arguments[1].getValueType()) {
                     ColumnType.INT -> {
                         // FLOAT / INT
@@ -88,7 +85,6 @@ class Divide : Operator {
             }
 
             ColumnType.DOUBLE -> {
-                val arg1: Double = arguments[0].getDouble() ?: 0.0
                 when (arguments[1].getValueType()) {
                     ColumnType.INT -> {
                         // DOUBLE / INT

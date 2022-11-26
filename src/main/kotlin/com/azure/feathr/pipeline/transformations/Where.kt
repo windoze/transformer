@@ -47,16 +47,16 @@ class Where(private val criteria: Expression, private val batchSize: Int = 100) 
                     // Upstream has been exhausted
                     break
                 }
-                cachedRows.addAll(fetched.filter { filter.evaluate(it).getBool() ?: false })
+                cachedRows.addAll(fetched.filter { filter.evaluate(it).getBool() })
             }
-            if (cachedRows.size > length) {
+            return if (cachedRows.size > length) {
                 val ret = cachedRows.subList(0, length).toList()
                 cachedRows.subList(0, length).clear()
-                return ret
+                ret
             } else {
                 val ret = cachedRows.toList()
                 cachedRows.clear()
-                return ret
+                ret
             }
         }
     }

@@ -68,7 +68,7 @@ class PipelineVerticle : CoroutineVerticle() {
                         } else {
                             it
                         }
-                    }.mapIndexed() { idx, row ->
+                    }.mapIndexed { idx, row ->
                         p.outputSchema.zip(row.evaluate()).associate { (col, value) ->
                             col.name to value?.value?.let {
                                 if (it is TransformerException) {
@@ -92,7 +92,7 @@ class PipelineVerticle : CoroutineVerticle() {
                                 }
                             }
                         }
-                    } ?: listOf()
+                    }
                 }
                 val stop = Instant.now().let {
                     it.epochSecond * 1000_000 + it.nano / 1000
