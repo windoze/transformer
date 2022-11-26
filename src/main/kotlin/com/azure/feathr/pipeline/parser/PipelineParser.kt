@@ -29,9 +29,19 @@ class PipelineParser {
     }
 
     private fun parseSchema(ctx: SchemaContext): List<Column> {
-        return ctx.column_list().ID().zip(ctx.column_list().TYPES()).map { (id, type) ->
-            Column(id.symbol.text, ColumnType.valueOf(type.symbol.text!!.uppercase()))
+        return ctx.column_list().field_def().map { parseFieldDef(it) }
+//        return ctx.column_list().ID().zip(ctx.column_list().TYPES()).map { (id, type) ->
+//            Column(id.symbol.text, ColumnType.valueOf(type.symbol.text!!.uppercase()))
+//        }
+    }
+
+    private fun parseFieldDef(ctx: Field_defContext): Column {
+        val typeName = if(ctx.childCount>1) {
+            ctx.TYPES().text
+        } else {
+            "dynamic"
         }
+        return Column(ctx.ID().text, ColumnType.valueOf(typeName.uppercase()))
     }
 
     private fun parseTransformation(ctx: TransformationContext): Transformation {

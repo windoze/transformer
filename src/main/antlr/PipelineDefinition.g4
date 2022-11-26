@@ -13,7 +13,11 @@ schema
     ;
 
 column_list
-    : ID 'as' TYPES (',' ID 'as' TYPES)*
+    : field_def (',' field_def)*
+    ;
+
+field_def
+    : ID ('as' TYPES)?
     ;
 
 transformation

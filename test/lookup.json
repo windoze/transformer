@@ -3,8 +3,8 @@
     {
       "class": "FeathrRedisSource",
       "name": "feathrci",
-      "host": "SOME_REDIS_HOST:6380",
-      "password": "SOME_PASSWORD",
+      "host": "${REDIS_HOST}",
+      "password": "${REDIS_PASSWORD}",
       "ssl": true,
       "table": "tab1"
     },
@@ -28,6 +28,17 @@
         "org": "$.org",
         "as": "$.as",
         "query": "$.query"
+      }
+    },
+    {
+      "class": "HttpJsonApiSource",
+      "name": "locationsvc",
+      "method": "get",
+      "urlBase": "https://locsvc.azurewebsites.net",
+      "keyUrlTemplate": "/locations/$",
+      "resultPath": {
+        "id": "$.id",
+        "name": "$.name"
       }
     }
   ]
