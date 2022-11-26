@@ -4,10 +4,8 @@ import com.azure.feathr.pipeline.*
 import com.azure.feathr.pipeline.operators.Plus
 import com.azure.feathr.pipeline.parser.PipelineParser
 import com.azure.feathr.pipeline.transformations.Project
-import com.azure.feathr.pipeline.transformations.Transformation
 import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.vertx.kotlin.coroutines.CoroutineVerticle
@@ -17,7 +15,8 @@ import kotlinx.coroutines.future.await
 import java.time.Instant
 
 class PipelineVerticle : CoroutineVerticle() {
-    private val mapper = JsonMapper.builder().enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
+    private val mapper =
+        JsonMapper.builder().addModule(Value.jacksonModule).enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS).build()
     private var pipelines: Map<String, Pipeline> = mutableMapOf()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -61,7 +60,7 @@ class PipelineVerticle : CoroutineVerticle() {
                     }
                     p.processSingle(inputRow, req.validate).fetchAll().await().let {
                         if (req.error == ErrorReportingMode.SKIP) {
-                            it.filter {row ->
+                            it.filter { row ->
                                 row.evaluate().firstOrNull { field ->
                                     field?.isError() ?: false
                                 } == null

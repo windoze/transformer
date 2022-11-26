@@ -1,21 +1,44 @@
 package com.azure.feathr.pipeline
 
-import java.time.LocalDateTime
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.module.SimpleModule
+import java.time.DateTimeException
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
+
 
 /**
  * Value class
  */
-data class Value(val value: Any?) {
+class Value(v: Any?) {
+    val value: Any?
+
     init {
-        // Validate if the value is one of the expected types
-        getValueType()
+        value = when(v) {
+            null -> null
+            is Boolean -> v
+            is Int -> v
+            is Long -> v
+            is Float -> v
+            is Double -> v
+            is String -> v
+            is List<*> -> v
+            is Map<*, *> -> v
+            is OffsetDateTime -> v
+            is TransformerException -> v
+            is Value -> v.value
+            is Throwable -> TransformExternalException(v.toString())
+            else -> throw IllegalValue(v)
+        }
     }
 
     fun getValueType(): ColumnType {
-        if(value == null) return ColumnType.NULL
-        return when(value) {
+        if (value == null) return ColumnType.NULL
+        return when (value) {
             is Boolean -> ColumnType.BOOL
             is Int -> ColumnType.INT
             is Long -> ColumnType.LONG
@@ -24,7 +47,7 @@ data class Value(val value: Any?) {
             is String -> ColumnType.STRING
             is List<*> -> ColumnType.ARRAY
             is Map<*, *> -> ColumnType.OBJECT
-            is LocalDateTime -> ColumnType.DATETIME
+            is OffsetDateTime -> ColumnType.DATETIME
             is TransformerException -> ColumnType.ERROR
             else -> throw IllegalValue(value)
         }
@@ -78,9 +101,9 @@ data class Value(val value: Any?) {
         return value as? List<Any?> ?: throw IllegalValue(value)
     }
 
-    fun getDateTime(): LocalDateTime {
-        if(value is String) parseDateTime(value)
-        return value as? LocalDateTime ?: throw IllegalValue(value)
+    fun getDateTime(): OffsetDateTime {
+        if (value is String) return parseDateTime(value)
+        return value as? OffsetDateTime ?: throw IllegalValue(value)
     }
 
     fun getError(): TransformerException {
@@ -92,21 +115,50 @@ data class Value(val value: Any?) {
         return value as? Map<String, Any?> ?: throw IllegalValue(value)
     }
 
+    fun into(cls: Class<*>): Any? {
+        if (value == null)
+            return null
+        when (cls) {
+            Int::class.java -> return getInt()
+            Long::class.java -> return getLong()
+            Float::class.java -> return getFloat()
+            Double::class.java -> return getDouble()
+            String::class.java -> return getString()
+            List::class.java -> return getArray()
+            Map::class.java -> return getObject()
+            OffsetDateTime::class.java -> return getDateTime()
+            TransformerException::class.java -> return getError()
+        }
+        throw IllegalType(ColumnType.NULL)  // TODO:
+    }
+
     companion object {
         val NULL = Value(null)
 
         val DEFAULT_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd")!!
         val DEFAULT_DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")!!
+        val DEFAULT_DATETIME_FORMAT_PARSER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.[SSSSSSSSS][SSSSSSSS][SSSSSSS][SSSSSS][SSSSS][SSSS][SSS][SS][S]]")!!
 
-        fun parseDateTime(s: String): LocalDateTime {
+        @JvmStatic
+        fun parseDateTime(s: String): OffsetDateTime {
             try {
-                return LocalDateTime.from(DEFAULT_DATETIME_FORMAT.parse(s))
-            } catch (e: DateTimeParseException) {
+                return OffsetDateTime.from(DEFAULT_DATETIME_FORMAT_PARSER.parse(s))
+            } catch (e: DateTimeException) {
                 try {
-                    return LocalDateTime.from(DEFAULT_DATE_FORMAT.parse(s))
-                } catch (e: DateTimeParseException) {
+                    return LocalDate.parse(s, DEFAULT_DATE_FORMAT).atTime(0, 0, 0).atOffset(ZoneOffset.UTC)
+                } catch (e: DateTimeException) {
                     throw IllegalValue(s)
                 }
+            }
+        }
+
+        @JvmStatic
+        val jacksonModule = SimpleModule().addSerializer(OffsetDateTime::class.java, OffsetDateTimeSerializer())
+
+        class OffsetDateTimeSerializer : JsonSerializer<OffsetDateTime?>() {
+            override fun serialize(value: OffsetDateTime?, gen: JsonGenerator, serializers: SerializerProvider) {
+                gen.writeString(value?.format(DEFAULT_DATETIME_FORMAT) ?: "")
             }
         }
     }

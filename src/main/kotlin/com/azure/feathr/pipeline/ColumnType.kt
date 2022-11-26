@@ -2,7 +2,7 @@ package com.azure.feathr.pipeline
 
 import com.azure.feathr.pipeline.Value.Companion.DEFAULT_DATETIME_FORMAT
 import java.time.DateTimeException
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
@@ -48,7 +48,7 @@ enum class ColumnType {
 
             STRING -> when(v) {
                 is String -> v
-                is LocalDateTime -> try {
+                is OffsetDateTime -> try {
                     v.format(DEFAULT_DATETIME_FORMAT)
                 } catch (e: DateTimeException) {
                     throw IllegalValue(v)
@@ -59,7 +59,7 @@ enum class ColumnType {
             OBJECT -> if (v is Map<*, *>) v else throw IllegalValue(v)
 
             DATETIME -> when(v) {
-                is LocalDateTime -> v
+                is OffsetDateTime -> v
                 is String -> try {
                     DEFAULT_DATETIME_FORMAT.parse(v)
                 } catch (e: DateTimeParseException) {
@@ -137,7 +137,7 @@ enum class ColumnType {
                 is Float -> v.toString()
                 is Double -> v.toString()
                 is String -> v
-                is LocalDateTime -> try {
+                is OffsetDateTime -> try {
                     v.format(DEFAULT_DATETIME_FORMAT)
                 } catch (e: DateTimeException) {
                     throw IllegalValue(v)
@@ -156,7 +156,7 @@ enum class ColumnType {
             }
 
             DATETIME -> when(v) {
-                is LocalDateTime -> v
+                is OffsetDateTime -> v
                 is String -> try {
                     Value.parseDateTime(v)
                 } catch (e: DateTimeParseException) {

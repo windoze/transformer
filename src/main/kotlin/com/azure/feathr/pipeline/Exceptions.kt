@@ -27,3 +27,5 @@ class InvalidDateFormatException(format: String, message: Any): TransformerExcep
 class LookupSourceError(private val src: Throwable) : TransformerException("$src")
 
 class UnsupportedFeatureType(message: String): TransformerException(message)
+
+class ArityError(message: String): TransformerException(message)
