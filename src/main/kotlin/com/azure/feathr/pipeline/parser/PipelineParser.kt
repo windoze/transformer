@@ -36,7 +36,7 @@ class PipelineParser {
     }
 
     private fun parseFieldDef(ctx: Field_defContext): Column {
-        val typeName = if(ctx.childCount>1) {
+        val typeName = if (ctx.childCount > 1) {
             ctx.TYPES().text
         } else {
             "dynamic"
@@ -110,6 +110,7 @@ class PipelineParser {
             is Unary_exprContext -> parseUnaryExpression(t)
             is Dot_memberContext -> parseDotMember(t)
             is FunctionContext -> parseFunction(t)
+            is Case_exprContext -> parseCaseClause(t)
             is NumberContext -> parseNumber(t)
             is StrContext -> parseString(t)
             is BoolContext -> parseBool(t)
@@ -155,6 +156,21 @@ class PipelineParser {
                 TODO()
             }
         }
+    }
+
+    private fun parseCaseClause(ctx: Case_exprContext): Expression {
+        val args = ctx.when_then().flatMap { parseWhenThen(it) } + listOf(parseElseThen(ctx.else_then()))
+        return OperatorExpression(FunctionCall("case"), args)
+    }
+
+    private fun parseWhenThen(ctx: When_thenContext): List<Expression> {
+        val condition = parseExpression(ctx.expr(0))
+        val result = parseExpression(ctx.expr(1))
+        return listOf(condition, result)
+    }
+
+    private fun parseElseThen(ctx: Else_thenContext): Expression {
+        return parseExpression(ctx.expr())
     }
 
     private fun parseFunction(ctx: FunctionContext): Expression {

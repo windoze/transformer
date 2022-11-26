@@ -92,12 +92,25 @@ expr
     | expr ('+'|'-'|'or') expr
     | expr ('>'|'<'|'>='|'<='|'!='|'<>') expr
     | expr '[' expr ']'
+    | case_expr
     | function
     | dot_member
     | number
     | str
     | bool
     | '(' expr ')'
+    ;
+
+case_expr
+    : 'case' when_then (when_then)* else_then 'end'
+    ;
+
+when_then
+    : 'when' expr 'then' expr
+    ;
+
+else_then
+    : 'else' expr
     ;
 
 unary_expr
