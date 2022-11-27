@@ -272,7 +272,7 @@ interface Function {
 //            hash
 //            hex
 //            histogram_numeric
-            register("hour") { x: OffsetDateTime -> x.hour }
+            register("hour", unaryg { Value(it.getDateTime().hour) })
 //            hypot
 //            if
             register("ifnull", binaryg { x: Value, y: Value -> if (x.isNull()) y else x })
@@ -335,15 +335,15 @@ interface Function {
 //            mean
 //            min
 //            min_by
-            register("minute") { x: OffsetDateTime -> x.minute }
+            register("minute", unaryg { Value(it.getDateTime().minute) })
 //            mod
 //            monotonically_increasing_id
-            register("month") { x: OffsetDateTime -> x.month }
+            register("month", unaryg { Value(it.getDateTime().month) })
 //            months_between
 //            named_struct
             register("nanvl") { x: Double, y: Double -> if (x.isNaN()) y else x }
             register("negative") { x: Double -> -x }
-            register("next_day") { x: OffsetDateTime -> x.plusDays(1) }
+            register("next_day", unaryg { Value(it.getDateTime().plusDays(1)) })
 //            not
             register("now", nullary(OffsetDateTime::now))
 //            nth_value
@@ -398,7 +398,7 @@ interface Function {
 //            schema_of_csv
 //            schema_of_json
             register("sec") { x: Double -> 1 / cos(x) }
-            register("second") { x: OffsetDateTime -> x.second }
+            register("second", unaryg { Value(it.getDateTime().second) })
 //            sentences
 //            sequence
 //            session_window
@@ -465,7 +465,7 @@ interface Function {
 //            to_json
 //            to_number
 //            to_timestamp
-            register("to_unix_timestamp", unaryg(){
+            register("to_unix_timestamp", unaryg {
                 // TODO: format
                 Value(it.getDateTime().toLocalDateTime().toEpochSecond(ZoneOffset.UTC))
             })
@@ -493,17 +493,19 @@ interface Function {
 //            unix_micros
 //            unix_millis
 //            unix_seconds
-            register("unix_timestamp") { x: OffsetDateTime ->
+            register("unix_timestamp", unaryg {
                 // TODO: Default parameters and format
-                x.toLocalDateTime().toEpochSecond(ZoneOffset.UTC)
-            }
+                Value(
+                    it.getDateTime().toLocalDateTime().toEpochSecond(ZoneOffset.UTC)
+                )
+            })
             register("upper") { x: String -> x.uppercase() }
             register("uuid", nullary { UUID.randomUUID().toString() })
 //            var_pop
 //            var_samp
 //            variance
 //            version
-            register("weekday") { x: OffsetDateTime -> x.dayOfWeek.value }
+            register("weekday", unaryg { Value(it.getDateTime().dayOfWeek.value) })
 //            weekofyear
 //            when
 //            width_bucket

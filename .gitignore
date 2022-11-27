@@ -5,6 +5,10 @@ conf/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+__pycache__
+.pyc
+.venv
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml

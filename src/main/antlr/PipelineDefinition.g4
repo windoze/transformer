@@ -144,10 +144,6 @@ CONSTANTS
     : 'PI' | 'E'
     ;
 
-TYPES
-    : 'int' | 'long' | 'datetime' | 'float' | 'double' | 'string' | 'array' | 'object' | 'dynamic'
-    ;
-
 STRING_LIT : '"' (~('"' | '\\' | '\r' | '\n') | ('\\' ('"' | '\\' | 'r' | 'n' | 't')))* '"'
     ;
 
@@ -157,6 +153,10 @@ BOOL_LIT
 
 ID
     : [a-zA-Z][a-zA-Z0-9_]*
+    ;
+
+TYPES
+    : 'int' | 'long' | 'datetime' | 'float' | 'double' | 'string' | 'array' | 'object' | 'dynamic'
     ;
 
 FLOAT   : DIGIT+ '.' DIGIT*
