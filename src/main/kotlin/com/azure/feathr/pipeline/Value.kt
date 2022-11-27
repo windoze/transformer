@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
-import java.time.DateTimeException
-import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
+import java.time.*
 import java.time.format.DateTimeFormatter
 
 
@@ -135,15 +132,15 @@ class Value(v: Any?) {
     companion object {
         val NULL = Value(null)
 
-        val DEFAULT_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd")!!
-        val DEFAULT_DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")!!
+        val DEFAULT_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("UTC"))!!
+        val DEFAULT_DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("UTC"))!!
         val DEFAULT_DATETIME_FORMAT_PARSER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.[SSSSSSSSS][SSSSSSSS][SSSSSSS][SSSSSS][SSSSS][SSSS][SSS][SS][S]]")!!
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.[SSSSSSSSS][SSSSSSSS][SSSSSSS][SSSSSS][SSSSS][SSSS][SSS][SS][S]]").withZone(ZoneId.of("UTC"))!!
 
         @JvmStatic
         fun parseDateTime(s: String): OffsetDateTime {
             try {
-                return OffsetDateTime.from(DEFAULT_DATETIME_FORMAT_PARSER.parse(s))
+                return LocalDateTime.parse(s, DEFAULT_DATETIME_FORMAT_PARSER).atOffset(ZoneOffset.UTC)
             } catch (e: DateTimeException) {
                 try {
                     return LocalDate.parse(s, DEFAULT_DATE_FORMAT).atTime(0, 0, 0).atOffset(ZoneOffset.UTC)

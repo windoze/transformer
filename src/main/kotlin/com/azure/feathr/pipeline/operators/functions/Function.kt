@@ -465,10 +465,10 @@ interface Function {
 //            to_json
 //            to_number
 //            to_timestamp
-            register("to_unix_timestamp") { x: OffsetDateTime ->
+            register("to_unix_timestamp", unaryg(){
                 // TODO: format
-                x.toLocalDateTime().toEpochSecond(ZoneOffset.UTC)
-            }
+                Value(it.getDateTime().toLocalDateTime().toEpochSecond(ZoneOffset.UTC))
+            })
             register("to_utc_timestamp", ToUtcTimeStamp())
 //            transform
 //            transform_keys
@@ -545,14 +545,15 @@ interface Function {
 
         fun <T : Any> getType(cls: Class<T>): ColumnType {
             return when (cls) {
-                Boolean::class.java -> ColumnType.BOOL
-                Int::class.java -> ColumnType.INT
-                Long::class.java -> ColumnType.LONG
-                Float::class.java -> ColumnType.FLOAT
-                Double::class.java -> ColumnType.DOUBLE
+                Boolean::class.java, java.lang.Boolean::class.java -> ColumnType.BOOL
+                Int::class.java, java.lang.Integer::class.java -> ColumnType.INT
+                Long::class.java, java.lang.Long::class.java -> ColumnType.LONG
+                Float::class.java, java.lang.Float::class.java -> ColumnType.FLOAT
+                Double::class.java, java.lang.Double::class.java -> ColumnType.DOUBLE
                 String::class.java -> ColumnType.STRING
                 List::class.java -> ColumnType.ARRAY
                 Map::class.java -> ColumnType.OBJECT
+                OffsetDateTime::class.java -> ColumnType.DATETIME
                 else -> ColumnType.ERROR
             }
         }

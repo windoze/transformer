@@ -115,6 +115,7 @@ class Divide : Operator {
     }
 
     override fun getResultType(argumentTypes: List<ColumnType>): ColumnType {
+        if(argumentTypes[0]==ColumnType.DYNAMIC || argumentTypes[1]==ColumnType.DYNAMIC) return ColumnType.DYNAMIC
         return when (argumentTypes[0]) {
             ColumnType.INT -> {
                 when (argumentTypes[1]) {

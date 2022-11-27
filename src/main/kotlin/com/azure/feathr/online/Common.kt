@@ -93,7 +93,7 @@ data class RequestEntry(
      * True to check the type of each field, turn them into error if check fails
      * False to convert the field to required type, turn into error if the conversion fails
      */
-    val validate: Boolean = true,
+    val validate: Boolean = false,
 
     /**
      * Error reporting mode
