@@ -1,88 +1,4 @@
-grammar PipelineDefinition;
-
-prog
-    : pipeline+
-    ;
-
-pipeline
-    : ID schema ('|' transformation)* ';'
-    ;
-
-schema
-    :  '(' (column_list) ')'
-    ;
-
-column_list
-    : field_def (',' field_def)*
-    ;
-
-field_def
-    : ID ('as' TYPES)?
-    ;
-
-transformation
-    : where_tran
-    | top_tran
-    | project_tran
-    | project_rename_tran
-    | project_remove_tran
-    | project_keep_tran
-    | explode_tran
-    | lookup_tran
-    | take_tran
-    | ignore_error_tran
-    ;
-
-where_tran
-    : 'where' expr;
-
-top_tran
-    : 'top' number 'by' expr sort_dir? nulls_pos?
-    ;
-
-project_tran
-    : 'project' ID '=' expr (',' ID '=' expr)*
-    ;
-
-project_rename_tran
-    : 'project-rename' ID '=' ID (',' ID '=' ID)*
-    ;
-
-project_remove_tran
-    : 'project-remove' ID (',' ID)*
-    ;
-
-project_keep_tran
-    : 'project-keep' ID (',' ID)*
-    ;
-
-explode_tran
-    : ('mv-expand' | 'explode') ID ('as' TYPES)?
-    ;
-
-lookup_tran
-    : 'lookup' rename_with_type (',' rename_with_type)* 'from' ID 'on' expr
-    ;
-
-take_tran
-    : 'take' number
-    ;
-
-ignore_error_tran
-    : 'ignore-error'
-    ;
-
-sort_dir
-    : 'asc' | 'desc'
-    ;
-
-nulls_pos
-    : 'nulls' ('first' | 'last')
-    ;
-
-rename_with_type
-    : (ID '=')? ID ('as' TYPES)?
-    ;
+grammar ExpressionOnly;
 
 expr
     : unary_expr
@@ -122,11 +38,11 @@ expr_list
     ;
 
 function
-    : ID '(' expr_list? ')'
+    : func_name '(' expr_list? ')'
     ;
 
 dot_member
-    : ID ('.' ID)*;
+    : col_name ('.' ID)*;
 
 number
     : (FLOAT | DEC | HEX | BIN | CONSTANTS)
@@ -139,6 +55,10 @@ str
 bool
     : BOOL_LIT
     ;
+
+// We use separated rule as these 2 kinds of identifiers need to be collected
+func_name : ID;
+col_name: ID;
 
 CONSTANTS
     : 'PI' | 'E'

@@ -87,6 +87,44 @@ interface Function {
         }
     }
 
+    interface Function3<T1, T2, T3, R> {
+        fun apply(t1: T1, t2: T2, t3: T3): R
+    }
+
+    class TernaryFunctionWrapper<in T1 : Any?, in T2 : Any?, in T3 : Any?, out R : Any?>(
+        val function: Function3<in T1, in T2, in T3, out R>,
+        private val retType: ColumnType
+    ) :
+        Function {
+        override fun getResultType(argumentTypes: List<ColumnType>): ColumnType {
+            return retType
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        override fun call(arguments: List<Value>): Value {
+            if (arguments.size != 3) throw ArityError("Required 3 arguments, but ${arguments.size} provided")
+            return Value(
+                this.function.apply(
+                    arguments[0].value as T1,
+                    arguments[1].value as T2,
+                    arguments[2].value as T3
+                )
+            )
+        }
+    }
+
+    class TernaryGenericFunctionWrapper(val function: Function3<Value, Value, Value, Value>) :
+        Function {
+        override fun getResultType(argumentTypes: List<ColumnType>): ColumnType {
+            return ColumnType.DYNAMIC
+        }
+
+        override fun call(arguments: List<Value>): Value {
+            if (arguments.size != 2) throw ArityError("Required 3 arguments, but ${arguments.size} provided")
+            return Value(this.function.apply(arguments[0], arguments[1], arguments[1]))
+        }
+    }
+
     companion object {
         val UTC: ZoneId = ZoneId.of("UTC")
         val functions: MutableMap<String, Function> = mutableMapOf()
@@ -144,7 +182,7 @@ interface Function {
 //            bool_or
             register("boolean", TypeConvertor(ColumnType.BOOL))
 //            bround
-            register("cbrt") { s: String -> s.trim() }
+            register("btrim") { s: String -> s.trim() }
 //            cardinality
 //            case
 //            cast
@@ -247,11 +285,10 @@ interface Function {
 //            input_file_block_start
 //            input_file_name
 //            instr
-//            int
             register("int", TypeConvertor(ColumnType.INT))
-            register("exp") { x: Double -> x.isNaN() }
-//            isnotnull
-//            isnull
+            register("isnan") { x: Double -> x.isNaN() }
+            register("isnotnull", unaryg { Value(!it.isNull()) })
+            register("isnull", unaryg { Value(it.isNull()) })
 //            java_method
 //            json_array_length
 //            json_object_keys
@@ -333,9 +370,9 @@ interface Function {
 //            quarter
             register("radians") { x: Double -> x * PI / 180.0 }
 //            raise_error
-//            rand
+            register("rand", RandFunctions::rand)
 //            randn
-//            random
+            register("random", RandFunctions::rand)
 //            rank
 //            reflect
 //            regexp
@@ -371,7 +408,7 @@ interface Function {
 //            shiftleft
 //            shiftright
 //            shiftrightunsigned
-//            shuffle
+            register("shuffle", RandFunctions::shuffle)
 //            sign
 //            signum
             register("sin", ::sin)
@@ -389,7 +426,7 @@ interface Function {
 //            split_part
             register("sqrt", ::sqrt)
 //            stack
-            register("trim") { x: String, y: String -> x.startsWith(y) }
+            register("startswith") { x: String, y: String -> x.startsWith(y) }
 //            std
 //            stddev
 //            stddev_pop
@@ -503,7 +540,7 @@ interface Function {
             register("len", Len())
             register("case", Case())
             register("bucket", Bucket())
-            register("timestamp", Timestamp())
+//            register("timestamp", Timestamp())
         }
 
         fun <T : Any> getType(cls: Class<T>): ColumnType {
@@ -574,6 +611,25 @@ interface Function {
             return BinaryGenericFunctionWrapper(function)
         }
 
+        /**
+         * Wrap a binary generic function, which takes 2 parameters in `T1` and `T2` type and returns `R`
+         */
+        @JvmStatic
+        fun <T1 : Any?, T2 : Any?, T3 : Any?, R : Any?> ternary(
+            function: Function3<in T1, in T2, in T3, out R>,
+            retType: ColumnType
+        ): Function {
+            return TernaryFunctionWrapper(function, retType)
+        }
+
+        /**
+         * Wrap a binary generic function, which takes 2 parameters in `Value` type and returns `Value`
+         */
+        @JvmStatic
+        fun ternaryg(function: Function3<Value, Value, Value, Value>): Function {
+            return TernaryGenericFunctionWrapper(function)
+        }
+
         inline fun <reified R : Any> register(name: String, noinline f: () -> R) {
             register(name, nullary(f))
         }
@@ -599,6 +655,10 @@ interface Function {
 
         inline fun <reified T1 : Any?, reified T2 : Any?, reified R : Any> binary(function: java.util.function.BiFunction<in T1, in T2, out R>): Function {
             return BinaryFunctionWrapper(function, getType(R::class.java))
+        }
+
+        inline fun <reified T1 : Any?, reified T2 : Any?, reified T3 : Any?, reified R : Any> ternary(function: Function3<in T1, in T2, in T3, out R>): Function {
+            return TernaryFunctionWrapper(function, getType(R::class.java))
         }
     }
 }
